@@ -1,0 +1,132 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "主 Agent Prompt 流转",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "into-main",
+        "label": "进入主 Agent",
+        "focus": ["goal", "fixed", "ctx", "sense"],
+        "note": "goal + 固定包 + Sense 回填进入主 Planner 上下文。"
+      },
+      {
+        "id": "loop-out",
+        "label": "校验与写出",
+        "focus": ["ctx", "lint", "objectives", "stop"],
+        "note": "validate 回执回灌；写出 objectives 后停在 Draft。"
+      }
+    ]
+  },
+  "lanes": [
+    { "id": "host", "label": "输入 / Host 注入" },
+    { "id": "main", "label": "主 Planner Agent" },
+    { "id": "mcp", "label": "MCP 回填 / 另路" }
+  ],
+  "phases": [
+    { "id": "inject", "label": "固定注入", "fromCol": 0, "toCol": 1 },
+    { "id": "sense", "label": "Sense + 校验", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "author", "label": "写出", "fromCol": 4, "toCol": 5, "variant": "dashed" }
+  ],
+  "mainPath": ["goal", "fixed", "ctx", "objectives", "stop"],
+  "nodes": [
+    {
+      "id": "goal",
+      "lane": "host",
+      "col": 0,
+      "type": "external",
+      "label": "用户 Goal",
+      "sublabel": "/graph <goal>",
+      "width": 124
+    },
+    {
+      "id": "fixed",
+      "lane": "host",
+      "col": 1,
+      "type": "frontend",
+      "label": "固定 Prompt 包",
+      "sublabel": "graph.md + SKILL.md",
+      "tag": "+ tool descs",
+      "width": 140
+    },
+    {
+      "id": "stop",
+      "lane": "host",
+      "col": 5,
+      "type": "security",
+      "label": "停在 Draft",
+      "sublabel": "不 approve/start",
+      "width": 124
+    },
+    {
+      "id": "ctx",
+      "lane": "main",
+      "col": 2,
+      "type": "backend",
+      "label": "主 Agent 上下文",
+      "sublabel": "Cursor / Codex / …",
+      "width": 132
+    },
+    {
+      "id": "objectives",
+      "lane": "main",
+      "col": 4,
+      "type": "backend",
+      "label": "写出 objectives",
+      "sublabel": "GraphSpec 节点文案",
+      "width": 140
+    },
+    {
+      "id": "sense",
+      "lane": "mcp",
+      "col": 2,
+      "type": "database",
+      "label": "Sense 回填",
+      "sublabel": "plannerBrief + repo",
+      "tag": "先读 brief",
+      "width": 140
+    },
+    {
+      "id": "lint",
+      "lane": "mcp",
+      "col": 3,
+      "type": "security",
+      "label": "validate 回执",
+      "sublabel": "revise ≤3",
+      "width": 124
+    },
+    {
+      "id": "envelope",
+      "lane": "mcp",
+      "col": 5,
+      "type": "cloud",
+      "label": "TaskEnvelope",
+      "sublabel": "Worker prompt · 审批后",
+      "tag": "不进主 Agent",
+      "width": 148
+    }
+  ],
+  "edges": [
+    { "id": "goal-fixed", "from": "goal", "to": "fixed", "label": "goal 文本", "variant": "emphasis" },
+    { "id": "fixed-ctx", "from": "fixed", "to": "ctx", "label": "加载", "variant": "emphasis" },
+    { "id": "ctx-sense", "from": "ctx", "to": "sense", "label": "discover/inspect", "variant": "default" },
+    { "id": "sense-ctx", "from": "sense", "to": "ctx", "label": "读入 brief", "variant": "emphasis", "role": "return" },
+    { "id": "ctx-lint", "from": "ctx", "to": "lint", "label": "validate", "variant": "security" },
+    { "id": "lint-ctx", "from": "lint", "to": "ctx", "label": "errors", "variant": "dashed", "role": "error" },
+    { "id": "ctx-obj", "from": "ctx", "to": "objectives", "label": "propose", "variant": "emphasis" },
+    { "id": "obj-stop", "from": "objectives", "to": "stop", "label": "publish", "variant": "security" },
+    { "id": "obj-env", "from": "objectives", "to": "envelope", "label": "runtime only", "variant": "dashed", "role": "branch" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "主 Agent 吃到的 Prompt",
+      "items": [
+        "goal · graph.md · SKILL.md · planner MCP 描述 · plannerBrief/repo",
+        "不传：TaskEnvelope、raw MCP schema、完整第三方 skill、approve"
+      ]
+    }
+  ]
+}

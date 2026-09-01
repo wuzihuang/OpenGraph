@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { InspectorActivity } from "./InspectorActivity.tsx";
+import { InspectorComments } from "./InspectorComments.tsx";
 import { InspectorConfigure } from "./InspectorConfigure.tsx";
 import { InspectorEvidence } from "./InspectorEvidence.tsx";
 import type { GraphNode, InspectorPanel, RunEvent } from "./types.ts";
@@ -9,14 +10,13 @@ type InspectorProps = {
   panel: InspectorPanel;
   agentOptions: string[];
   nodeEvents: RunEvent[];
-  runUnavailable: boolean;
+  graphId: string | null;
+  token: string;
   validationValid: boolean;
   onClose: () => void;
   onPanelChange: (panel: InspectorPanel) => void;
   onUpdateActive: (change: Partial<GraphNode>) => void;
   onSaveAmendment: () => void;
-  onReassign: () => void;
-  onRetry: () => void;
 };
 
 function InspectorTabs(props: {
@@ -33,6 +33,14 @@ function InspectorTabs(props: {
         }}
       >
         Configure
+      </button>
+      <button
+        className={panel === "comments" ? "active" : ""}
+        onClick={function showComments() {
+          onPanelChange("comments");
+        }}
+      >
+        Comments
       </button>
       <button
         className={panel === "activity" ? "active" : ""}
@@ -60,14 +68,13 @@ export function Inspector(props: InspectorProps) {
     panel,
     agentOptions,
     nodeEvents,
-    runUnavailable,
+    graphId,
+    token,
     validationValid,
     onClose,
     onPanelChange,
     onUpdateActive,
     onSaveAmendment,
-    onReassign,
-    onRetry,
   } = props;
   return (
     <aside className="inspector">
@@ -90,14 +97,10 @@ export function Inspector(props: InspectorProps) {
           onSaveAmendment={onSaveAmendment}
         />
       )}
-      {panel === "activity" && (
-        <InspectorActivity
-          nodeEvents={nodeEvents}
-          runUnavailable={runUnavailable}
-          onReassign={onReassign}
-          onRetry={onRetry}
-        />
+      {panel === "comments" && (
+        <InspectorComments graphId={graphId} nodeId={active.id} token={token} />
       )}
+      {panel === "activity" && <InspectorActivity nodeEvents={nodeEvents} />}
       {panel === "evidence" && <InspectorEvidence nodeEvents={nodeEvents} />}
     </aside>
   );

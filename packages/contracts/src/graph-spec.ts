@@ -48,10 +48,18 @@ export const GraphEdgeV1 = z.object({
   condition: z.string().optional(),
 });
 
+/** Three mutually constraining goals confirmed with the human before Propose. */
+export const GoalCharterV1 = z.object({
+  strategic: z.string().min(8),
+  medium: z.string().min(8),
+  fast: z.string().min(8),
+});
+
 export const GraphSpecV1 = z.object({
   version: z.literal("1.0"),
   executionMode: z.enum(["single_agent", "graph"]),
   goal: z.string().min(1),
+  goalCharter: GoalCharterV1,
   acceptanceCriteria: z.array(z.string().min(1)).min(1),
   repository: z.object({
     root: z.string().min(1),
@@ -76,6 +84,7 @@ export const GraphSpecV1 = z.object({
   edges: z.array(GraphEdgeV1),
 });
 
+export type GoalCharter = z.infer<typeof GoalCharterV1>;
 export type GraphSpec = z.infer<typeof GraphSpecV1>;
 export type GraphNode = z.infer<typeof GraphNodeV1>;
 export type GraphEdge = z.infer<typeof GraphEdgeV1>;

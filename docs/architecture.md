@@ -4,9 +4,9 @@ OpenGraph is a local-first Graph Engineering compiler and runtime. A host model 
 
 ## Trust boundaries
 
-1. **Planner surface** — Any supported host (Codex, Claude Code, Cursor, Qoder, ZCode, OpenClaw, Hermes, Kimi, Gemini, Qwen, or shared Agent Skills) loads the Graph skill (workflow) plus the graph-design skill (topology doctrine) and calls MCP discovery, inspection, validation, draft publication, status, and amendment tools. No planner-facing tool can approve or execute a graph.
+1. **Planner surface** — Any supported host (Codex, Claude Code, Cursor, Qoder, ZCode, OpenClaw, Hermes, Kimi, Gemini, Qwen, or shared Agent Skills) loads the Graph skill and calls MCP discovery, inspection, validation, draft publication, status, amendment, and `graph_start_run` tools. Planning cannot start a run; a later explicit Execute request in agent chat authorizes `graph_start_run`.
 2. **Graph compiler** — Zod parsing and deterministic lint rules form the only path from a draft into an executable graph.
-3. **Human approval** — a version-specific approval from the dashboard or `graphctl graph approve` is required before a run can leave `awaiting_approval`.
+3. **Human approval** — an explicit Execute request in agent chat authorizes `graph_start_run`, which records version-specific approval and starts atomically. CLI users may use `graphctl graph approve`; the Dashboard is display-only.
 4. **Runtime** — `graphd` schedules ready nodes with a global width budget, persists every transition, uses isolated worktrees for writers, and resumes incomplete runs after restart.
 5. **Agent boundary** — ACP sessions are per node attempt. Verification always uses a new, read-only session and sees only the objective, diff, artifacts, and physical check evidence.
 
@@ -42,7 +42,9 @@ The runtime state has exactly eight top-level fields: `runId`, `graphVersion`, `
 
 ## Execution sequence
 
-Draft → deterministic validation → immutable version → human approval → compile → ready-node scheduling → ACP worker → physical checks → fresh verifier → bounded retry or artifact publication → integration → acceptance → report.
+Draft → deterministic validation → **mock shadow-run (prior walk)** → immutable version → human approval → compile → ready-node scheduling → ACP worker → physical checks → fresh verifier → bounded retry or artifact publication → integration → acceptance → report.
+
+Publish is blocked unless the shadow-run completes: an ephemeral git clone + Mock ACP walks every node so the LangGraph is runtime-certified before the human sees a Draft. Shadow softens business acceptance commands after probing binaries; it never approves the user's draft or starts the real-agent run.
 
 Every normalized event is committed before WebSocket broadcast. Reconnecting clients request events after their last sequence. A run-local transaction assigns strictly increasing sequence numbers.
 
@@ -50,8 +52,12 @@ Every normalized event is committed before WebSocket broadcast. Reconnecting cli
 
 The daemon binds to `127.0.0.1`, requires a random local session token, passes an allowlisted environment to child processes, redacts common secret shapes, never persists agent credentials, uses argument arrays, and cancels ACP before terminating the whole process group. Network, package installation, publishing, pushing, deletion, payment, and other irreversible operations require explicit approval.
 
-Graph Engineering controls map to three Perez anchors:
+Graph Engineering is **loops watching loops**: the planner first confirms a **Goal Charter** (Strategic / Medium / Fast goals that constrain each other), then drafts **three loop bodies**, each with workers plus adversarial review. It is not a prettier workflow DAG. Single-loop automation fails via Goodhart, upward blindness, conflict, and measurement decay.
+
+Controls map to three Perez anchors:
 
 1. **Anchors** — physical acceptance commands, write-glob checks, artifact hashes, and diffs are external facts workers cannot invent.
 2. **Frozen nodes** — `acceptanceFrozen` plus immutable graph versions keep evaluation criteria out of the optimizer's hands.
-3. **External judgment** — humans approve each version; planner MCP tools cannot approve or execute.
+3. **External judgment** — humans lock the Goal Charter and explicitly request Execute; only then may the host call `graph_start_run`. The Dashboard never grants approval.
+
+Full planner prompt doctrine lives in `plugins/graph/skills/graph/SKILL.md`.

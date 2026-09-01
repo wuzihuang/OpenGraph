@@ -7,21 +7,21 @@ OpenGraph has two agent surfaces:
 
 ## Planner hosts
 
-`./install-graph [host|all]` installs the shared Graph skill, the graph-design doctrine skill, and host-specific MCP wiring. The skills and MCP server are the portable core; plugin marketplaces are used when a host provides one.
+`./install-graph [host|all]` installs the shared Graph skill (design + workflow) and host-specific MCP wiring. The skill and MCP server are the portable core; plugin marketplaces are used when a host provides one.
 
 | Host | Install target | Skill / plugin path | MCP wiring | Invoke |
 | --- | --- | --- | --- | --- |
-| Codex | `codex` | Codex plugin marketplace + `~/.codex/skills/graph` (+ `graph-design`) | plugin `.mcp.json` | `$graph <goal>` |
-| Claude Code | `claude` | Claude marketplace + `~/.claude/skills/graph` (+ `graph-design`) | plugin `.mcp.json` | `/graph <goal>` |
-| Cursor | `cursor` | `~/.cursor/skills/graph`, `~/.agents/skills/graph` (+ `graph-design`) | `~/.cursor/mcp.json` | `/graph <goal>` |
-| Qoder | `qoder` | `.qoder-plugin` marketplace / `~/.qoder/skills/graph` (+ `graph-design`) | plugin `.mcp.json` | `/graph <goal>` |
-| ZCode | `zcode` | `.zcode-plugin` + `~/.zcode/skills/graph` (+ `graph-design`) | plugin `.mcp.json` | `/graph <goal>` |
-| OpenClaw | `openclaw` | `~/.openclaw/skills/graph`, `~/.agents/skills/graph` (+ `graph-design`) | `~/.openclaw/openclaw.json` → `mcp.servers` | graph skill |
-| Hermes Agent | `hermes` | `~/.hermes/skills/software-development/graph` (+ `graph-design`) | `~/.hermes/config.yaml` → `mcp_servers` | graph skill |
-| Kimi Code | `kimi` | `~/.kimi/skills/graph`, `~/.agents/skills/graph` (+ `graph-design`) | `~/.kimi-code/mcp.json` | `/skill:graph <goal>` |
-| Gemini CLI | `gemini` | `~/.gemini/skills/graph`, `~/.agents/skills/graph` (+ `graph-design`) | `~/.gemini/settings.json` | graph skill |
-| Qwen Code | `qwen` | `~/.qwen/skills/graph`, `~/.agents/skills/graph` (+ `graph-design`) | `~/.qwen/settings.json` | graph skill |
-| Shared Agent Skills | `agents` | `~/.agents/skills/graph` (+ `graph-design`) | host-specific | any skills-compatible agent |
+| Codex | `codex` | Codex plugin marketplace + `~/.codex/skills/graph` | plugin `.mcp.json` | `$graph <goal>` |
+| Claude Code | `claude` | Claude marketplace + `~/.claude/skills/graph` | plugin `.mcp.json` | `/graph <goal>` |
+| Cursor | `cursor` | `~/.cursor/skills/graph`, `~/.agents/skills/graph` | `~/.cursor/mcp.json` | `/graph <goal>` |
+| Qoder | `qoder` | `.qoder-plugin` marketplace / `~/.qoder/skills/graph` | plugin `.mcp.json` | `/graph <goal>` |
+| ZCode | `zcode` | `.zcode-plugin` + `~/.zcode/skills/graph` | plugin `.mcp.json` | `/graph <goal>` |
+| OpenClaw | `openclaw` | `~/.openclaw/skills/graph`, `~/.agents/skills/graph` | `~/.openclaw/openclaw.json` → `mcp.servers` | graph skill |
+| Hermes Agent | `hermes` | `~/.hermes/skills/software-development/graph` | `~/.hermes/config.yaml` → `mcp_servers` | graph skill |
+| Kimi Code | `kimi` | `~/.kimi/skills/graph`, `~/.agents/skills/graph` | `~/.kimi-code/mcp.json` | `/skill:graph <goal>` |
+| Gemini CLI | `gemini` | `~/.gemini/skills/graph`, `~/.agents/skills/graph` | `~/.gemini/settings.json` | graph skill |
+| Qwen Code | `qwen` | `~/.qwen/skills/graph`, `~/.agents/skills/graph` | `~/.qwen/settings.json` | graph skill |
+| Shared Agent Skills | `agents` | `~/.agents/skills/graph` | host-specific | any skills-compatible agent |
 
 `./install-graph all` installs every known host. Missing CLIs are skipped with a warning; skill and MCP files are still written where paths are stable.
 

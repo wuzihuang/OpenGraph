@@ -110,12 +110,17 @@ export class WorktreeManager {
     await runGit(this.repoRoot, ["worktree", "remove", "--force", path]);
   }
 
-  async changedFiles(path: string): Promise<string[]> {
-    const result = await runGit(path, ["status", "--porcelain"]);
-    return result.stdout
+  async changedFiles(path: string, baseRef = "HEAD"): Promise<string[]> {
+    const [status, committed] = await Promise.all([
+      runGit(path, ["status", "--porcelain"]),
+      runGit(path, ["diff", "--name-only", baseRef]),
+    ]);
+    const uncommitted = status.stdout
       .split("\n")
       .filter(Boolean)
       .map((line) => line.slice(3));
+    const changedSinceBase = committed.stdout.split("\n").filter(Boolean);
+    return [...new Set([...uncommitted, ...changedSinceBase])];
   }
 
   verifyWriteGlobs(files: string[], globs: string[]): WriteGlobVerification {
@@ -126,9 +131,13 @@ export class WorktreeManager {
     };
   }
 
-  async collectDiff(path: string, artifactPath: string): Promise<string> {
+  async collectDiff(
+    path: string,
+    artifactPath: string,
+    baseRef = "HEAD",
+  ): Promise<string> {
     await runGit(path, ["add", "--intent-to-add", "."]);
-    const result = await runGit(path, ["diff", "--binary", "HEAD"]);
+    const result = await runGit(path, ["diff", "--binary", baseRef]);
 
     await mkdir(join(artifactPath, ".."), { recursive: true });
     await writeFile(artifactPath, result.stdout);
@@ -136,8 +145,11 @@ export class WorktreeManager {
   }
 
   async commit(path: string, message: string): Promise<string> {
-    await runGit(path, ["add", "-A"]);
-    await runGit(path, ["commit", "-m", message]);
+    const status = await runGit(path, ["status", "--porcelain"]);
+    if (status.stdout.trim()) {
+      await runGit(path, ["add", "-A"]);
+      await runGit(path, ["commit", "-m", message]);
+    }
     const result = await runGit(path, ["rev-parse", "HEAD"]);
     return result.stdout.trim();
   }

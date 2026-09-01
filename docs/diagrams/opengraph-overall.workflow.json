@@ -1,0 +1,91 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "OpenGraph 整体流程图",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "happy-path",
+        "label": "规划到验收",
+        "focus": ["goal", "host", "mcp", "draft", "lint", "version", "approve", "graphd", "worker", "verify", "accept"],
+        "note": "从用户目标到人类审批，再到 graphd 调度与验收报告。"
+      },
+      {
+        "id": "trust-gate",
+        "label": "信任边界",
+        "focus": ["draft", "lint", "version", "approve"],
+        "note": "确定性校验与人类审批；Planner MCP 不能 approve 或 start。"
+      },
+      {
+        "id": "supervise-loop",
+        "label": "监督执行",
+        "focus": ["graphd", "worker", "verify", "accept"],
+        "note": "ACP worker 与 fresh readonly verifier；失败可有界重试。"
+      }
+    ]
+  },
+  "lanes": [
+    { "id": "surface", "label": "人机与宿主" },
+    { "id": "planner", "label": "Planner / MCP" },
+    { "id": "trust", "label": "编译与审批", "variant": "exception" },
+    { "id": "runtime", "label": "Runtime / Agent" }
+  ],
+  "phases": [
+    { "id": "plan", "label": "规划", "fromCol": 0, "toCol": 1 },
+    { "id": "gate", "label": "信任门", "fromCol": 2, "toCol": 3, "variant": "security" },
+    { "id": "run", "label": "执行验收", "fromCol": 4, "toCol": 5, "variant": "emphasis" }
+  ],
+  "groups": [
+    { "id": "planner_loop", "label": "Propose ↔ Validate", "lane": "planner", "fromCol": 1, "toCol": 2, "variant": "emphasis" },
+    { "id": "trust_gate", "label": "不可变版本", "lane": "trust", "fromCol": 2, "toCol": 3, "variant": "security" },
+    { "id": "execute", "label": "调度 · Worker", "lane": "runtime", "fromCol": 4, "toCol": 5, "variant": "dashed" }
+  ],
+  "mainPath": ["goal", "host", "mcp", "draft", "lint", "version", "approve", "graphd", "worker", "verify", "accept"],
+  "nodes": [
+    { "id": "goal", "lane": "surface", "col": 0, "type": "external", "label": "用户目标", "sublabel": "可验收 outcome", "width": 132 },
+    { "id": "host", "lane": "surface", "col": 1, "type": "frontend", "label": "Planner Host", "sublabel": "Cursor / Codex / …", "tag": "Graph Skill", "width": 132 },
+    { "id": "accept", "lane": "surface", "col": 5, "type": "frontend", "label": "Acceptance", "sublabel": "Dashboard 报告", "width": 132 },
+    { "id": "mcp", "lane": "planner", "col": 1, "type": "backend", "label": "plugin-mcp", "sublabel": "validate · publish", "tag": "planner-safe", "width": 140 },
+    { "id": "draft", "lane": "planner", "col": 2, "type": "backend", "label": "GraphSpecV1", "sublabel": "监督型草稿", "tag": "Draft only", "width": 132 },
+    { "id": "lint", "lane": "trust", "col": 2, "type": "security", "label": "graph-compiler", "sublabel": "Zod + 确定性 lint", "tag": "唯一入库路径", "width": 140 },
+    { "id": "version", "lane": "trust", "col": 3, "type": "backend", "label": "不可变版本", "sublabel": "versioned graph", "width": 132 },
+    { "id": "approve", "lane": "surface", "col": 3, "type": "security", "label": "人类审批", "sublabel": "Dashboard / graphctl", "tag": "human_required", "width": 132 },
+    { "id": "graphd", "lane": "runtime", "col": 4, "type": "backend", "label": "graphd", "sublabel": "ready-node 调度", "tag": "width budget", "width": 132 },
+    { "id": "worker", "lane": "runtime", "col": 5, "type": "cloud", "label": "ACP Worker", "sublabel": "worktree 隔离写入", "width": 132 },
+    { "id": "verify", "lane": "trust", "col": 5, "type": "security", "label": "Fresh Verifier", "sublabel": "readonly 新会话", "tag": "adversarial", "width": 132 }
+  ],
+  "edges": [
+    { "id": "goal-host", "from": "goal", "to": "host", "variant": "default" },
+    { "id": "host-mcp", "from": "host", "to": "mcp", "label": "调用 MCP", "variant": "emphasis" },
+    { "id": "mcp-draft", "from": "mcp", "to": "draft", "label": "propose", "variant": "default" },
+    { "id": "draft-lint", "from": "draft", "to": "lint", "label": "validate", "variant": "security" },
+    { "id": "lint-revise", "from": "lint", "to": "draft", "label": "revise ≤3", "variant": "dashed", "role": "error" },
+    { "id": "lint-version", "from": "lint", "to": "version", "label": "publish", "variant": "emphasis" },
+    { "id": "version-approve", "from": "version", "to": "approve", "variant": "security" },
+    { "id": "approve-graphd", "from": "approve", "to": "graphd", "label": "start run", "variant": "emphasis" },
+    { "id": "graphd-worker", "from": "graphd", "to": "worker", "variant": "default" },
+    { "id": "worker-verify", "from": "worker", "to": "verify", "label": "diff + checks", "variant": "security" },
+    { "id": "verify-retry", "from": "verify", "to": "worker", "label": "bounded retry", "variant": "dashed", "role": "error" },
+    { "id": "verify-accept", "from": "verify", "to": "accept", "label": "pass", "variant": "emphasis", "role": "return" }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "信任边界",
+      "items": [
+        "Planner MCP 不能 approve / execute",
+        "人类审批后 graphd 才可离开 awaiting_approval"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "核心包",
+      "items": [
+        "contracts · graph-compiler · graph-runtime · daemon-core",
+        "plugin-mcp · event-store · acp-client · worktree-manager"
+      ]
+    }
+  ]
+}

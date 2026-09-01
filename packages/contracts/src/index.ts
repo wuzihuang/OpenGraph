@@ -1,6 +1,11 @@
 export { ArtifactContract, AcceptanceCheck } from "./artifacts.ts";
-export { GraphNodeV1, GraphEdgeV1, GraphSpecV1 } from "./graph-spec.ts";
-export type { GraphSpec, GraphNode, GraphEdge } from "./graph-spec.ts";
+export {
+  GoalCharterV1,
+  GraphNodeV1,
+  GraphEdgeV1,
+  GraphSpecV1,
+} from "./graph-spec.ts";
+export type { GoalCharter, GraphSpec, GraphNode, GraphEdge } from "./graph-spec.ts";
 export {
   supervisionRoleForKind,
   accentForSupervisionRole,

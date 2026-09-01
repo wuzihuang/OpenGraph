@@ -5507,10 +5507,10 @@ var require_ignore = __commonJS({
       ignored(p) {
         const fullpath = p.fullpath();
         const fullpaths = `${fullpath}/`;
-        const relative = p.relative() || ".";
-        const relatives = `${relative}/`;
+        const relative2 = p.relative() || ".";
+        const relatives = `${relative2}/`;
         for (const m of this.relative) {
-          if (m.match(relative) || m.match(relatives))
+          if (m.match(relative2) || m.match(relatives))
             return true;
         }
         for (const m of this.absolute) {
@@ -5521,9 +5521,9 @@ var require_ignore = __commonJS({
       }
       childrenIgnored(p) {
         const fullpath = p.fullpath() + "/";
-        const relative = (p.relative() || ".") + "/";
+        const relative2 = (p.relative() || ".") + "/";
         for (const m of this.relativeChildren) {
-          if (m.match(relative))
+          if (m.match(relative2))
             return true;
         }
         for (const m of this.absoluteChildren) {
@@ -7348,7 +7348,7 @@ var require_parseTokenList = __commonJS({
 // node_modules/.pnpm/depd@2.0.0/node_modules/depd/index.js
 var require_depd = __commonJS({
   "node_modules/.pnpm/depd@2.0.0/node_modules/depd/index.js"(exports, module) {
-    var relative = __require("path").relative;
+    var relative2 = __require("path").relative;
     module.exports = depd;
     var basePath = process.cwd();
     function containsNamespace(str, namespace) {
@@ -7540,7 +7540,7 @@ var require_depd = __commonJS({
       return formatted;
     }
     function formatLocation(callSite) {
-      return relative(basePath, callSite[0]) + ":" + callSite[1] + ":" + callSite[2];
+      return relative2(basePath, callSite[0]) + ":" + callSite[1] + ":" + callSite[2];
     }
     function getStack() {
       var limit2 = Error.stackTraceLimit;
@@ -8073,7 +8073,7 @@ var require_send = __commonJS({
     var { parseTokenList } = require_parseTokenList();
     var { createHttpError } = require_createHttpError();
     var extname = path9.extname;
-    var join14 = path9.join;
+    var join17 = path9.join;
     var normalize2 = path9.normalize;
     var resolve2 = path9.resolve;
     var sep2 = path9.sep;
@@ -8160,7 +8160,7 @@ var require_send = __commonJS({
           return { statusCode: 403 };
         }
         parts = path10.split(sep2);
-        path10 = normalize2(join14(root, path10));
+        path10 = normalize2(join17(root, path10));
       } else {
         if (UP_PATH_REGEXP.test(path10)) {
           debug('malicious path "%s"', path10);
@@ -8443,7 +8443,7 @@ var require_send = __commonJS({
       let err;
       for (let i2 = 0; i2 < options.index.length; i2++) {
         const index2 = options.index[i2];
-        const p = join14(path10, index2);
+        const p = join17(path10, index2);
         const { error: error61, stat: stat3 } = await tryStat(p);
         if (error61) {
           err = error61;
@@ -13755,7 +13755,7 @@ var require_buffer_list = __commonJS({
         }
       }, {
         key: "join",
-        value: function join14(s) {
+        value: function join17(s) {
           if (this.length === 0) return "";
           var p = this.head;
           var ret = "" + p.data;
@@ -24334,7 +24334,7 @@ var require_thread_stream = __commonJS({
     var { version: version5 } = require_package();
     var { EventEmitter: EventEmitter2 } = __require("events");
     var { Worker: Worker2 } = __require("worker_threads");
-    var { join: join14 } = __require("path");
+    var { join: join17 } = __require("path");
     var { pathToFileURL } = __require("url");
     var { wait: wait2 } = require_wait();
     var {
@@ -24385,7 +24385,7 @@ var require_thread_stream = __commonJS({
     function createWorker(stream, opts) {
       const { filename, workerData } = opts;
       const bundlerOverrides = "__bundlerPathsOverrides" in globalThis ? globalThis.__bundlerPathsOverrides : {};
-      const toExecute = bundlerOverrides["thread-stream-worker"] || join14(__dirname, "lib", "worker.js");
+      const toExecute = bundlerOverrides["thread-stream-worker"] || join17(__dirname, "lib", "worker.js");
       const worker = new Worker2(toExecute, {
         ...opts.workerOpts,
         name: opts.workerOpts?.name || "thread-stream",
@@ -24851,9 +24851,9 @@ var require_transport = __commonJS({
   "node_modules/.pnpm/pino@10.3.1/node_modules/pino/lib/transport.js"(exports, module) {
     "use strict";
     var { createRequire } = __require("module");
-    var { existsSync: existsSync7 } = __require("node:fs");
+    var { existsSync: existsSync8 } = __require("node:fs");
     var getCallers = require_caller();
-    var { join: join14, isAbsolute, sep: sep2 } = __require("node:path");
+    var { join: join17, isAbsolute, sep: sep2 } = __require("node:path");
     var { fileURLToPath: fileURLToPath5 } = __require("node:url");
     var sleep3 = require_atomic_sleep();
     var onExit2 = require_on_exit_leak_free();
@@ -24925,7 +24925,7 @@ var require_transport = __commonJS({
           return false;
         }
       }
-      return isAbsolute(path9) && !existsSync7(path9);
+      return isAbsolute(path9) && !existsSync8(path9);
     }
     function stripQuotes(value) {
       const first = value[0];
@@ -25006,7 +25006,7 @@ var require_transport = __commonJS({
         throw new Error("only one of target or targets can be specified");
       }
       if (targets) {
-        target = bundlerOverrides["pino-worker"] || join14(__dirname, "worker.js");
+        target = bundlerOverrides["pino-worker"] || join17(__dirname, "worker.js");
         options.targets = targets.filter((dest) => dest.target).map((dest) => {
           return {
             ...dest,
@@ -25024,7 +25024,7 @@ var require_transport = __commonJS({
           });
         });
       } else if (pipeline) {
-        target = bundlerOverrides["pino-worker"] || join14(__dirname, "worker.js");
+        target = bundlerOverrides["pino-worker"] || join17(__dirname, "worker.js");
         options.pipelines = [pipeline.map((dest) => {
           return {
             ...dest,
@@ -25047,7 +25047,7 @@ var require_transport = __commonJS({
           return origin;
         }
         if (origin === "pino/file") {
-          return join14(__dirname, "..", "file.js");
+          return join17(__dirname, "..", "file.js");
         }
         let fixTarget2;
         for (const filePath of callers) {
@@ -26027,7 +26027,7 @@ var require_safe_stable_stringify = __commonJS({
               return circularValue;
             }
             let res = "";
-            let join14 = ",";
+            let join17 = ",";
             const originalIndentation = indentation;
             if (Array.isArray(value)) {
               if (value.length === 0) {
@@ -26041,7 +26041,7 @@ var require_safe_stable_stringify = __commonJS({
                 indentation += spacer;
                 res += `
 ${indentation}`;
-                join14 = `,
+                join17 = `,
 ${indentation}`;
               }
               const maximumValuesToStringify = Math.min(value.length, maximumBreadth);
@@ -26049,13 +26049,13 @@ ${indentation}`;
               for (; i2 < maximumValuesToStringify - 1; i2++) {
                 const tmp2 = stringifyFnReplacer(String(i2), value, stack, replacer, spacer, indentation);
                 res += tmp2 !== void 0 ? tmp2 : "null";
-                res += join14;
+                res += join17;
               }
               const tmp = stringifyFnReplacer(String(i2), value, stack, replacer, spacer, indentation);
               res += tmp !== void 0 ? tmp : "null";
               if (value.length - 1 > maximumBreadth) {
                 const removedKeys = value.length - maximumBreadth - 1;
-                res += `${join14}"... ${getItemCount(removedKeys)} not stringified"`;
+                res += `${join17}"... ${getItemCount(removedKeys)} not stringified"`;
               }
               if (spacer !== "") {
                 res += `
@@ -26076,7 +26076,7 @@ ${originalIndentation}`;
             let separator = "";
             if (spacer !== "") {
               indentation += spacer;
-              join14 = `,
+              join17 = `,
 ${indentation}`;
               whitespace = " ";
             }
@@ -26090,13 +26090,13 @@ ${indentation}`;
               const tmp = stringifyFnReplacer(key2, value, stack, replacer, spacer, indentation);
               if (tmp !== void 0) {
                 res += `${separator}${strEscape(key2)}:${whitespace}${tmp}`;
-                separator = join14;
+                separator = join17;
               }
             }
             if (keyLength > maximumBreadth) {
               const removedKeys = keyLength - maximumBreadth;
               res += `${separator}"...":${whitespace}"${getItemCount(removedKeys)} not stringified"`;
-              separator = join14;
+              separator = join17;
             }
             if (spacer !== "" && separator.length > 1) {
               res = `
@@ -26137,7 +26137,7 @@ ${originalIndentation}`;
             }
             const originalIndentation = indentation;
             let res = "";
-            let join14 = ",";
+            let join17 = ",";
             if (Array.isArray(value)) {
               if (value.length === 0) {
                 return "[]";
@@ -26150,7 +26150,7 @@ ${originalIndentation}`;
                 indentation += spacer;
                 res += `
 ${indentation}`;
-                join14 = `,
+                join17 = `,
 ${indentation}`;
               }
               const maximumValuesToStringify = Math.min(value.length, maximumBreadth);
@@ -26158,13 +26158,13 @@ ${indentation}`;
               for (; i2 < maximumValuesToStringify - 1; i2++) {
                 const tmp2 = stringifyArrayReplacer(String(i2), value[i2], stack, replacer, spacer, indentation);
                 res += tmp2 !== void 0 ? tmp2 : "null";
-                res += join14;
+                res += join17;
               }
               const tmp = stringifyArrayReplacer(String(i2), value[i2], stack, replacer, spacer, indentation);
               res += tmp !== void 0 ? tmp : "null";
               if (value.length - 1 > maximumBreadth) {
                 const removedKeys = value.length - maximumBreadth - 1;
-                res += `${join14}"... ${getItemCount(removedKeys)} not stringified"`;
+                res += `${join17}"... ${getItemCount(removedKeys)} not stringified"`;
               }
               if (spacer !== "") {
                 res += `
@@ -26177,7 +26177,7 @@ ${originalIndentation}`;
             let whitespace = "";
             if (spacer !== "") {
               indentation += spacer;
-              join14 = `,
+              join17 = `,
 ${indentation}`;
               whitespace = " ";
             }
@@ -26186,7 +26186,7 @@ ${indentation}`;
               const tmp = stringifyArrayReplacer(key2, value[key2], stack, replacer, spacer, indentation);
               if (tmp !== void 0) {
                 res += `${separator}${strEscape(key2)}:${whitespace}${tmp}`;
-                separator = join14;
+                separator = join17;
               }
             }
             if (spacer !== "" && separator.length > 1) {
@@ -26244,20 +26244,20 @@ ${originalIndentation}`;
               indentation += spacer;
               let res2 = `
 ${indentation}`;
-              const join15 = `,
+              const join18 = `,
 ${indentation}`;
               const maximumValuesToStringify = Math.min(value.length, maximumBreadth);
               let i2 = 0;
               for (; i2 < maximumValuesToStringify - 1; i2++) {
                 const tmp2 = stringifyIndent(String(i2), value[i2], stack, spacer, indentation);
                 res2 += tmp2 !== void 0 ? tmp2 : "null";
-                res2 += join15;
+                res2 += join18;
               }
               const tmp = stringifyIndent(String(i2), value[i2], stack, spacer, indentation);
               res2 += tmp !== void 0 ? tmp : "null";
               if (value.length - 1 > maximumBreadth) {
                 const removedKeys = value.length - maximumBreadth - 1;
-                res2 += `${join15}"... ${getItemCount(removedKeys)} not stringified"`;
+                res2 += `${join18}"... ${getItemCount(removedKeys)} not stringified"`;
               }
               res2 += `
 ${originalIndentation}`;
@@ -26273,16 +26273,16 @@ ${originalIndentation}`;
               return '"[Object]"';
             }
             indentation += spacer;
-            const join14 = `,
+            const join17 = `,
 ${indentation}`;
             let res = "";
             let separator = "";
             let maximumPropertiesToStringify = Math.min(keyLength, maximumBreadth);
             if (isTypedArrayWithEntries(value)) {
-              res += stringifyTypedArray(value, join14, maximumBreadth);
+              res += stringifyTypedArray(value, join17, maximumBreadth);
               keys = keys.slice(value.length);
               maximumPropertiesToStringify -= value.length;
-              separator = join14;
+              separator = join17;
             }
             if (deterministic) {
               keys = sort(keys, comparator);
@@ -26293,13 +26293,13 @@ ${indentation}`;
               const tmp = stringifyIndent(key2, value[key2], stack, spacer, indentation);
               if (tmp !== void 0) {
                 res += `${separator}${strEscape(key2)}: ${tmp}`;
-                separator = join14;
+                separator = join17;
               }
             }
             if (keyLength > maximumBreadth) {
               const removedKeys = keyLength - maximumBreadth;
               res += `${separator}"...": "${getItemCount(removedKeys)} not stringified"`;
-              separator = join14;
+              separator = join17;
             }
             if (separator !== "") {
               res = `
@@ -34241,49 +34241,49 @@ var require_fast_uri = __commonJS({
       schemelessOptions.skipEscape = true;
       return serialize3(resolved, schemelessOptions);
     }
-    function resolveComponent(base, relative, options, skipNormalization) {
+    function resolveComponent(base, relative2, options, skipNormalization) {
       const target = {};
       if (!skipNormalization) {
         base = parse8(serialize3(base, options), options);
-        relative = parse8(serialize3(relative, options), options);
+        relative2 = parse8(serialize3(relative2, options), options);
       }
       options = options || {};
-      if (!options.tolerant && relative.scheme) {
-        target.scheme = relative.scheme;
-        target.userinfo = relative.userinfo;
-        target.host = relative.host;
-        target.port = relative.port;
-        target.path = removeDotSegments(relative.path || "");
-        target.query = relative.query;
+      if (!options.tolerant && relative2.scheme) {
+        target.scheme = relative2.scheme;
+        target.userinfo = relative2.userinfo;
+        target.host = relative2.host;
+        target.port = relative2.port;
+        target.path = removeDotSegments(relative2.path || "");
+        target.query = relative2.query;
       } else {
-        if (relative.userinfo !== void 0 || relative.host !== void 0 || relative.port !== void 0) {
-          target.userinfo = relative.userinfo;
-          target.host = relative.host;
-          target.port = relative.port;
-          target.path = removeDotSegments(relative.path || "");
-          target.query = relative.query;
+        if (relative2.userinfo !== void 0 || relative2.host !== void 0 || relative2.port !== void 0) {
+          target.userinfo = relative2.userinfo;
+          target.host = relative2.host;
+          target.port = relative2.port;
+          target.path = removeDotSegments(relative2.path || "");
+          target.query = relative2.query;
         } else {
-          if (!relative.path) {
+          if (!relative2.path) {
             target.path = base.path;
-            if (relative.query !== void 0) {
-              target.query = relative.query;
+            if (relative2.query !== void 0) {
+              target.query = relative2.query;
             } else {
               target.query = base.query;
             }
           } else {
-            if (relative.path[0] === "/") {
-              target.path = removeDotSegments(relative.path);
+            if (relative2.path[0] === "/") {
+              target.path = removeDotSegments(relative2.path);
             } else {
               if ((base.userinfo !== void 0 || base.host !== void 0 || base.port !== void 0) && !base.path) {
-                target.path = "/" + relative.path;
+                target.path = "/" + relative2.path;
               } else if (!base.path) {
-                target.path = relative.path;
+                target.path = relative2.path;
               } else {
-                target.path = base.path.slice(0, base.path.lastIndexOf("/") + 1) + relative.path;
+                target.path = base.path.slice(0, base.path.lastIndexOf("/") + 1) + relative2.path;
               }
               target.path = removeDotSegments(target.path);
             }
-            target.query = relative.query;
+            target.query = relative2.query;
           }
           target.userinfo = base.userinfo;
           target.host = base.host;
@@ -34291,7 +34291,7 @@ var require_fast_uri = __commonJS({
         }
         target.scheme = base.scheme;
       }
-      target.fragment = relative.fragment;
+      target.fragment = relative2.fragment;
       return target;
     }
     function equal(uriA, uriB, options) {
@@ -39949,49 +39949,49 @@ var require_fast_uri2 = __commonJS({
       schemelessOptions.skipEscape = true;
       return serialize3(resolved, schemelessOptions);
     }
-    function resolveComponent(base, relative, options, skipNormalization) {
+    function resolveComponent(base, relative2, options, skipNormalization) {
       const target = {};
       if (!skipNormalization) {
         base = parse8(serialize3(base, options), options);
-        relative = parse8(serialize3(relative, options), options);
+        relative2 = parse8(serialize3(relative2, options), options);
       }
       options = options || {};
-      if (!options.tolerant && relative.scheme) {
-        target.scheme = relative.scheme;
-        target.userinfo = relative.userinfo;
-        target.host = relative.host;
-        target.port = relative.port;
-        target.path = removeDotSegments(relative.path || "");
-        target.query = relative.query;
+      if (!options.tolerant && relative2.scheme) {
+        target.scheme = relative2.scheme;
+        target.userinfo = relative2.userinfo;
+        target.host = relative2.host;
+        target.port = relative2.port;
+        target.path = removeDotSegments(relative2.path || "");
+        target.query = relative2.query;
       } else {
-        if (relative.userinfo !== void 0 || relative.host !== void 0 || relative.port !== void 0) {
-          target.userinfo = relative.userinfo;
-          target.host = relative.host;
-          target.port = relative.port;
-          target.path = removeDotSegments(relative.path || "");
-          target.query = relative.query;
+        if (relative2.userinfo !== void 0 || relative2.host !== void 0 || relative2.port !== void 0) {
+          target.userinfo = relative2.userinfo;
+          target.host = relative2.host;
+          target.port = relative2.port;
+          target.path = removeDotSegments(relative2.path || "");
+          target.query = relative2.query;
         } else {
-          if (!relative.path) {
+          if (!relative2.path) {
             target.path = base.path;
-            if (relative.query !== void 0) {
-              target.query = relative.query;
+            if (relative2.query !== void 0) {
+              target.query = relative2.query;
             } else {
               target.query = base.query;
             }
           } else {
-            if (relative.path[0] === "/") {
-              target.path = removeDotSegments(relative.path);
+            if (relative2.path[0] === "/") {
+              target.path = removeDotSegments(relative2.path);
             } else {
               if ((base.userinfo !== void 0 || base.host !== void 0 || base.port !== void 0) && !base.path) {
-                target.path = "/" + relative.path;
+                target.path = "/" + relative2.path;
               } else if (!base.path) {
-                target.path = relative.path;
+                target.path = relative2.path;
               } else {
-                target.path = base.path.slice(0, base.path.lastIndexOf("/") + 1) + relative.path;
+                target.path = base.path.slice(0, base.path.lastIndexOf("/") + 1) + relative2.path;
               }
               target.path = removeDotSegments(target.path);
             }
-            target.query = relative.query;
+            target.query = relative2.query;
           }
           target.userinfo = base.userinfo;
           target.host = base.host;
@@ -39999,7 +39999,7 @@ var require_fast_uri2 = __commonJS({
         }
         target.scheme = base.scheme;
       }
-      target.fragment = relative.fragment;
+      target.fragment = relative2.fragment;
       return target;
     }
     function equal(uriA, uriB, options) {
@@ -74415,9 +74415,9 @@ var StdioServerTransport = class {
 };
 
 // packages/plugin-mcp/src/daemon-lifecycle.ts
-import { existsSync as existsSync6 } from "node:fs";
-import { homedir as homedir4 } from "node:os";
-import { dirname as dirname4, join as join12 } from "node:path";
+import { existsSync as existsSync7 } from "node:fs";
+import { homedir as homedir5 } from "node:os";
+import { dirname as dirname4, join as join15 } from "node:path";
 import { fileURLToPath as fileURLToPath4 } from "node:url";
 
 // packages/api-client/src/index.ts
@@ -74481,8 +74481,8 @@ var import_static = __toESM(require_static(), 1);
 var import_websocket = __toESM(require_websocket2(), 1);
 var import_fastify = __toESM(require_fastify(), 1);
 import { randomBytes } from "node:crypto";
-import { existsSync as existsSync5, mkdirSync as mkdirSync5, readFileSync as readFileSync6, writeFileSync as writeFileSync6 } from "node:fs";
-import { join as join11 } from "node:path";
+import { existsSync as existsSync6, mkdirSync as mkdirSync5, readFileSync as readFileSync7, writeFileSync as writeFileSync6 } from "node:fs";
+import { join as join14 } from "node:path";
 
 // node_modules/.pnpm/drizzle-orm@0.45.2_@types+better-sqlite3@7.6.13_better-sqlite3@13.0.3/node_modules/drizzle-orm/entity.js
 var entityKind = /* @__PURE__ */ Symbol.for("drizzle:entityKind");
@@ -75505,7 +75505,7 @@ function sql(strings, ...params) {
     return new SQL([new StringChunk(str)]);
   }
   sql2.raw = raw;
-  function join14(chunks, separator) {
+  function join17(chunks, separator) {
     const result = [];
     for (const [i2, chunk] of chunks.entries()) {
       if (i2 > 0 && separator !== void 0) {
@@ -75515,7 +75515,7 @@ function sql(strings, ...params) {
     }
     return new SQL(result);
   }
-  sql2.join = join14;
+  sql2.join = join17;
   function identifier(value) {
     return new Name(value);
   }
@@ -76371,6 +76371,19 @@ CREATE TABLE IF NOT EXISTS migrations(version INTEGER PRIMARY KEY,applied_at TEX
   {
     version: 2,
     sql: "ALTER TABLE runs ADD COLUMN resumed_count INTEGER NOT NULL DEFAULT 0;"
+  },
+  {
+    version: 3,
+    sql: `CREATE TABLE IF NOT EXISTS node_comments(
+  id TEXT PRIMARY KEY,
+  graph_id TEXT NOT NULL,
+  node_id TEXT NOT NULL,
+  role TEXT NOT NULL,
+  body TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_node_comments_graph_node
+  ON node_comments(graph_id, node_id, created_at);`
   }
 ];
 function applyMigrations(db) {
@@ -76570,6 +76583,12 @@ var EventStore = class {
     const row = this.db.prepare("SELECT * FROM runs WHERE id=?").get(runId);
     return row ? mapRunRow(row) : null;
   }
+  listRunsForGraph(graphId, limit2 = 20) {
+    const rows = this.db.prepare(
+      "SELECT * FROM runs WHERE graph_id=? ORDER BY created_at DESC LIMIT ?"
+    ).all(graphId, limit2);
+    return rows.map(mapRunRow);
+  }
   resumableRuns() {
     const rows = this.db.prepare(
       "SELECT * FROM runs WHERE status IN ('pending','running','paused')"
@@ -76647,10 +76666,52 @@ var EventStore = class {
     );
     return { path: path9, hash: hash2 };
   }
+  listNodeComments(graphId, nodeId) {
+    const rows = (nodeId ? this.db.prepare(
+      "SELECT id,graph_id,node_id,role,body,created_at FROM node_comments WHERE graph_id=? AND node_id=? ORDER BY created_at ASC"
+    ).all(graphId, nodeId) : this.db.prepare(
+      "SELECT id,graph_id,node_id,role,body,created_at FROM node_comments WHERE graph_id=? ORDER BY created_at ASC"
+    ).all(graphId)).map(function mapComment(row) {
+      return {
+        id: row.id,
+        graphId: row.graph_id,
+        nodeId: row.node_id,
+        role: row.role,
+        body: row.body,
+        createdAt: row.created_at
+      };
+    });
+    return rows;
+  }
+  addNodeComment(graphId, nodeId, body, role = "user") {
+    const comment = {
+      id: `comment_${randomUUID()}`,
+      graphId,
+      nodeId,
+      role,
+      body,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    this.db.prepare(
+      "INSERT INTO node_comments(id,graph_id,node_id,role,body,created_at) VALUES(?,?,?,?,?,?)"
+    ).run(
+      comment.id,
+      comment.graphId,
+      comment.nodeId,
+      comment.role,
+      comment.body,
+      comment.createdAt
+    );
+    return comment;
+  }
 };
 
 // packages/graph-runtime/src/graph-runtime.ts
 import { randomUUID as randomUUID4 } from "node:crypto";
+
+// packages/graph-compiler/src/lint-graph-spec.ts
+import { existsSync as existsSync2 } from "node:fs";
+import { join as join2 } from "node:path";
 
 // packages/contracts/src/artifacts.ts
 var ArtifactContract = external_exports.object({
@@ -76719,10 +76780,16 @@ var GraphEdgeV1 = external_exports.object({
   artifacts: external_exports.array(external_exports.string()),
   condition: external_exports.string().optional()
 });
+var GoalCharterV1 = external_exports.object({
+  strategic: external_exports.string().min(8),
+  medium: external_exports.string().min(8),
+  fast: external_exports.string().min(8)
+});
 var GraphSpecV1 = external_exports.object({
   version: external_exports.literal("1.0"),
   executionMode: external_exports.enum(["single_agent", "graph"]),
   goal: external_exports.string().min(1),
+  goalCharter: GoalCharterV1,
   acceptanceCriteria: external_exports.array(external_exports.string().min(1)).min(1),
   repository: external_exports.object({
     root: external_exports.string().min(1),
@@ -76855,6 +76922,61 @@ function reachesVerifier(startId, outgoing, nodes) {
   }
   return false;
 }
+function isFastLoopVerifier(node3) {
+  return node3.kind === "verifier" && /(^fast_|_fast_|^fast$|fast_verifier)/.test(node3.id);
+}
+function isMidLoopVerifier(node3) {
+  return node3.kind === "verifier" && /(^mid_|_mid_|^mid$|mid_verifier)/.test(node3.id);
+}
+function hasStrategicAnchor(nodes) {
+  return nodes.some(function isAnchor(node3) {
+    return node3.kind === "human" || node3.kind === "acceptance";
+  });
+}
+function lintGoalCharter(spec, issues) {
+  const charter = spec.goalCharter;
+  const layers = [
+    { key: "strategic", label: "Strategic" },
+    { key: "medium", label: "Medium" },
+    { key: "fast", label: "Fast" }
+  ];
+  for (const layer of layers) {
+    const value = charter[layer.key]?.trim() ?? "";
+    if (value.length < 8) {
+      issues.push({
+        code: "MISSING_GOAL_CHARTER",
+        severity: "error",
+        message: `goalCharter.${layer.key} (${layer.label}) must be at least 8 characters`
+      });
+    }
+  }
+}
+function lintLoopBodies(spec, issues) {
+  if (spec.executionMode !== "graph" || spec.nodes.length <= 2) {
+    return;
+  }
+  if (!spec.nodes.some(isFastLoopVerifier)) {
+    issues.push({
+      code: "MISSING_FAST_LOOP",
+      severity: "error",
+      message: "Graph mode requires a Fast loop verifier node (id should include fast, e.g. fast_verifier)"
+    });
+  }
+  if (!spec.nodes.some(isMidLoopVerifier)) {
+    issues.push({
+      code: "MISSING_MEDIUM_LOOP",
+      severity: "error",
+      message: "Graph mode requires a Medium loop verifier node (id should include mid, e.g. mid_verifier)"
+    });
+  }
+  if (!hasStrategicAnchor(spec.nodes)) {
+    issues.push({
+      code: "MISSING_STRATEGIC_ANCHOR",
+      severity: "error",
+      message: "Graph mode requires a Strategic anchor node (kind human or acceptance)"
+    });
+  }
+}
 function lintGraphSpec(input2) {
   const parsed = GraphSpecV1.safeParse(input2);
   if (!parsed.success) {
@@ -76875,6 +76997,15 @@ function lintGraphSpec(input2) {
   const issues = [];
   const ids = /* @__PURE__ */ new Set();
   const nodes = /* @__PURE__ */ new Map();
+  if (!existsSync2(join2(spec.repository.root, ".git"))) {
+    issues.push({
+      code: "REPOSITORY_NOT_GIT",
+      severity: "error",
+      message: `repository.root must be a git repository (got ${spec.repository.root})`
+    });
+  }
+  lintGoalCharter(spec, issues);
+  lintLoopBodies(spec, issues);
   for (const node3 of spec.nodes) {
     if (ids.has(node3.id)) {
       issues.push({
@@ -81659,7 +81790,7 @@ async function readdir2(dir) {
 async function stat2(filePath) {
   return nodeFsPromises.stat(filePath);
 }
-function existsSync3(p) {
+function existsSync4(p) {
   return nodeFs.existsSync(p);
 }
 function mkdirSync3(dir) {
@@ -81855,7 +81986,7 @@ var PromptCache = class {
       entries[key] = entry.value;
     }
     const dir = path.dirname(filePath);
-    if (!existsSync3(dir)) {
+    if (!existsSync4(dir)) {
       mkdirSync3(dir);
     }
     const tempPath = `${filePath}.tmp`;
@@ -81863,7 +81994,7 @@ var PromptCache = class {
       writeFileSync3(tempPath, JSON.stringify({ entries }, null, 2));
       renameSync2(tempPath, filePath);
     } catch (e) {
-      if (existsSync3(tempPath)) {
+      if (existsSync4(tempPath)) {
         unlinkSync2(tempPath);
       }
       throw e;
@@ -81877,7 +82008,7 @@ var PromptCache = class {
    * @returns Number of entries loaded.
    */
   load(filePath) {
-    if (!existsSync3(filePath)) {
+    if (!existsSync4(filePath)) {
       return 0;
     }
     let entries;
@@ -86158,7 +86289,7 @@ function loadProfileState() {
     return void 0;
   }
   const configPath = getProfileConfigPath();
-  if (!configPath || !existsSync3(configPath)) {
+  if (!configPath || !existsSync4(configPath)) {
     return void 0;
   }
   try {
@@ -126809,7 +126940,7 @@ function compileGraphSpec(spec, runner) {
 // packages/claude-code-agent/src/index.ts
 import { randomUUID as randomUUID2 } from "node:crypto";
 import { access } from "node:fs/promises";
-import { join as join2 } from "node:path";
+import { join as join3 } from "node:path";
 
 // node_modules/.pnpm/is-plain-obj@4.1.0/node_modules/is-plain-obj/index.js
 function isPlainObject3(value) {
@@ -133642,12 +133773,17 @@ function resolveClaudeBinary() {
   return process.env.OPENGRAPH_CLAUDE_BIN ?? "claude";
 }
 function buildPrompt(envelope) {
+  const writable2 = envelope.writeGlobs.length > 0;
   const outputs = envelope.outputContract.map(function formatOutput(item) {
-    return `- ${item.name} (${item.type})`;
+    return item.type === "git_patch" ? `- ${item.name} (${item.type}; runtime captures this from source changes \u2014 do not create it manually)` : `- ${item.name} (${item.type}; logical artifact recorded from your final result)`;
   }).join("\n");
   const writes = envelope.writeGlobs.join(", ") || "(none)";
   const reads = envelope.readGlobs.join(", ") || "(none)";
+  const inputs = envelope.inputArtifactPaths.length > 0 ? envelope.inputArtifactPaths.map(function formatInput(path9) {
+    return `- ${path9}`;
+  }).join("\n") : "- (none)";
   const acceptance = envelope.acceptanceCommands.length ? envelope.acceptanceCommands.map((command) => `- \`${command}\``).join("\n") : "- (none)";
+  const executionInstruction = writable2 ? "Implement the objective by editing only files allowed by the write globs." : "Analyze the objective without modifying or creating any workspace files. Required outputs are logical artifacts; the runtime records your final summary.";
   return [
     `You are executing OpenGraph node \`${envelope.nodeId}\` (attempt ${envelope.attempt}).`,
     "",
@@ -133660,15 +133796,19 @@ function buildPrompt(envelope) {
     `- Write globs: ${writes}`,
     `- Prohibited: ${envelope.prohibitedOperations.join(", ")}`,
     "",
+    "## Input artifacts",
+    inputs,
+    "Read and use every listed input artifact before producing the result.",
+    "",
     "## Required outputs",
     outputs || "- (runtime will record a summary artifact)",
     "",
     "## Acceptance commands that must pass afterwards",
     acceptance,
     "",
-    "Implement the objective by editing files in this workspace.",
+    executionInstruction,
     "Do not push, deploy, or install unnecessary packages.",
-    "When finished, print a short summary of what changed."
+    writable2 ? "When finished, print a short summary of what changed." : "When finished, print a concise evidence-based result."
   ].join("\n");
 }
 var ClaudeCodeAgent = class {
@@ -133723,6 +133863,7 @@ var ClaudeCodeAgent = class {
     }
     const prompt = buildPrompt(envelope);
     const binary = resolveClaudeBinary();
+    const allowedTools = envelope.writeGlobs.length > 0 ? "Read,Write,Edit,Bash,Glob,Grep" : "Read,Bash,Glob,Grep";
     emit({
       kind: "tool_started",
       payload: { tool: "claude", title: `${binary} -p` }
@@ -133734,7 +133875,7 @@ var ClaudeCodeAgent = class {
           "-p",
           "--dangerously-skip-permissions",
           "--allowedTools",
-          "Read,Write,Edit,Bash,Glob,Grep",
+          allowedTools,
           "--output-format",
           "text",
           prompt
@@ -133809,7 +133950,7 @@ var ClaudeCodeAgent = class {
         artifacts: envelope.outputContract.map(function mapArtifact(item) {
           return {
             name: item.name,
-            path: join2(envelope.workspace, item.name)
+            path: join3(envelope.workspace, item.name)
           };
         }),
         evidence: [
@@ -133866,7 +134007,7 @@ var ClaudeCodeAgent = class {
 // packages/mock-acp-agent/src/index.ts
 import { randomUUID as randomUUID3 } from "node:crypto";
 import { mkdir as mkdir3, writeFile as writeFile2 } from "node:fs/promises";
-import { join as join3 } from "node:path";
+import { join as join4 } from "node:path";
 function wait(milliseconds, signal) {
   return new Promise((resolve2, reject) => {
     const timer = setTimeout(resolve2, milliseconds);
@@ -133907,9 +134048,9 @@ function changedFilesFor(envelope) {
 }
 async function writeMockOutputs(envelope, changedFiles) {
   for (const file2 of changedFiles) {
-    const path9 = join3(envelope.workspace, file2);
+    const path9 = join4(envelope.workspace, file2);
     const exportName = envelope.nodeId.replace(/-/g, "_");
-    await mkdir3(join3(path9, ".."), { recursive: true });
+    await mkdir3(join4(path9, ".."), { recursive: true });
     await writeFile2(
       path9,
       `export const ${exportName}Attempt = ${envelope.attempt};
@@ -137673,7 +137814,7 @@ function safeEnvironment(env = process.env) {
 
 // packages/worktree-manager/src/index.ts
 import { mkdir as mkdir4, writeFile as writeFile3 } from "node:fs/promises";
-import { join as join4 } from "node:path";
+import { join as join5 } from "node:path";
 
 // node_modules/.pnpm/balanced-match@4.0.4/node_modules/balanced-match/dist/esm/index.js
 var balanced = (a2, b, str) => {
@@ -139556,7 +139697,7 @@ function isAllowedByAnyGlob(file2, globs) {
   return globs.some((glob) => minimatch(file2, glob, { dot: true }));
 }
 var WorktreeManager = class {
-  constructor(repoRoot, stateRoot = join4(repoRoot, ".graph-engineer")) {
+  constructor(repoRoot, stateRoot = join5(repoRoot, ".graph-engineer")) {
     this.repoRoot = repoRoot;
     this.stateRoot = stateRoot;
   }
@@ -139573,7 +139714,7 @@ var WorktreeManager = class {
     return result.stdout.trim().length > 0;
   }
   path(projectId, runId, nodeId) {
-    return join4(this.stateRoot, "worktrees", projectId, runId, nodeId);
+    return join5(this.stateRoot, "worktrees", projectId, runId, nodeId);
   }
   async create(projectId, runId, nodeId, baseRef) {
     if (await this.dirtyBase()) {
@@ -139589,7 +139730,7 @@ var WorktreeManager = class {
     if (isWorktreeListed(listedWorktrees.stdout, path9)) {
       return { path: path9, branch };
     }
-    await mkdir4(join4(path9, ".."), { recursive: true });
+    await mkdir4(join5(path9, ".."), { recursive: true });
     const addArguments = await branchExists(this.repoRoot, branch) ? ["worktree", "add", path9, branch] : ["worktree", "add", "-b", branch, path9, baseRef];
     await runGit(this.repoRoot, addArguments);
     return { path: path9, branch };
@@ -139597,9 +139738,14 @@ var WorktreeManager = class {
   async cleanup(path9) {
     await runGit(this.repoRoot, ["worktree", "remove", "--force", path9]);
   }
-  async changedFiles(path9) {
-    const result = await runGit(path9, ["status", "--porcelain"]);
-    return result.stdout.split("\n").filter(Boolean).map((line) => line.slice(3));
+  async changedFiles(path9, baseRef = "HEAD") {
+    const [status, committed] = await Promise.all([
+      runGit(path9, ["status", "--porcelain"]),
+      runGit(path9, ["diff", "--name-only", baseRef])
+    ]);
+    const uncommitted = status.stdout.split("\n").filter(Boolean).map((line) => line.slice(3));
+    const changedSinceBase = committed.stdout.split("\n").filter(Boolean);
+    return [.../* @__PURE__ */ new Set([...uncommitted, ...changedSinceBase])];
   }
   verifyWriteGlobs(files, globs) {
     const outside = files.filter((file2) => !isAllowedByAnyGlob(file2, globs));
@@ -139608,16 +139754,19 @@ var WorktreeManager = class {
       outside
     };
   }
-  async collectDiff(path9, artifactPath) {
+  async collectDiff(path9, artifactPath, baseRef = "HEAD") {
     await runGit(path9, ["add", "--intent-to-add", "."]);
-    const result = await runGit(path9, ["diff", "--binary", "HEAD"]);
-    await mkdir4(join4(artifactPath, ".."), { recursive: true });
+    const result = await runGit(path9, ["diff", "--binary", baseRef]);
+    await mkdir4(join5(artifactPath, ".."), { recursive: true });
     await writeFile3(artifactPath, result.stdout);
     return artifactPath;
   }
   async commit(path9, message) {
-    await runGit(path9, ["add", "-A"]);
-    await runGit(path9, ["commit", "-m", message]);
+    const status = await runGit(path9, ["status", "--porcelain"]);
+    if (status.stdout.trim()) {
+      await runGit(path9, ["add", "-A"]);
+      await runGit(path9, ["commit", "-m", message]);
+    }
     const result = await runGit(path9, ["rev-parse", "HEAD"]);
     return result.stdout.trim();
   }
@@ -139691,6 +139840,7 @@ ${check2.stderr}`
 }
 
 // packages/graph-runtime/src/node-artifacts.ts
+import { readFileSync as readFileSync6 } from "node:fs";
 function createArtifactContent(context2, envelope, outputName, attempt, summary, physicalPassed) {
   const { node: node3, state } = context2;
   if (outputName !== "run-report.json") {
@@ -139727,19 +139877,24 @@ function writeOutputArtifacts(context2, envelope, attempt, summary, physicalPass
   const { emit, graphId, node: node3, projectId, state, store } = context2;
   const artifactNames = [];
   for (const output2 of node3.outputs) {
-    const content = createArtifactContent(
-      context2,
-      envelope,
-      output2.name,
-      attempt,
-      summary,
-      physicalPassed
+    const diffArtifact = state.artifactIndex[`diff:${node3.id}`];
+    const content = output2.type === "git_patch" && diffArtifact ? readFileSync6(diffArtifact.path, "utf8") : JSON.stringify(
+      createArtifactContent(
+        context2,
+        envelope,
+        output2.name,
+        attempt,
+        summary,
+        physicalPassed
+      ),
+      null,
+      2
     );
     const artifact = store.writeArtifact(
       state.runId,
       node3.id,
       output2.name,
-      JSON.stringify(content, null, 2)
+      content
     );
     state.artifactIndex[output2.name] = artifact;
     artifactNames.push(output2.name);
@@ -139885,7 +140040,7 @@ async function verifyAttempt(context2, attempt, workerSession, artifactNames, ph
 
 // packages/graph-runtime/src/node-worktree.ts
 import { readFile } from "node:fs/promises";
-import { join as join5 } from "node:path";
+import { join as join6 } from "node:path";
 async function createNodeWorktree(context2, manager) {
   const { node: node3, projectId, spec, state } = context2;
   if (node3.workspace.mode === "readonly") {
@@ -139932,13 +140087,20 @@ async function collectWorktreeEvidence(context2, manager, worktree, attempt) {
   if (!worktree) {
     return true;
   }
-  const changedFiles = await manager.changedFiles(worktree.path);
+  const changedFiles = await manager.changedFiles(
+    worktree.path,
+    context2.spec.repository.baseRef
+  );
   const scope = manager.verifyWriteGlobs(
     changedFiles,
     node3.workspace.writeGlobs
   );
-  const diffPath = join5(store.root, state.runId, "diffs", `${node3.id}.patch`);
-  await manager.collectDiff(worktree.path, diffPath);
+  const diffPath = join6(store.root, state.runId, "diffs", `${node3.id}.patch`);
+  await manager.collectDiff(
+    worktree.path,
+    diffPath,
+    context2.spec.repository.baseRef
+  );
   const diffArtifact = store.writeArtifact(
     state.runId,
     node3.id,
@@ -140331,6 +140493,65 @@ var GraphRuntime = class {
     return event;
   }
   async start(projectId, graphId, graphVersionId, spec, runId = `run_${randomUUID4()}`) {
+    const state = this.beginRun(
+      projectId,
+      graphId,
+      graphVersionId,
+      spec,
+      runId
+    );
+    void this.execute(projectId, graphId, spec, state);
+    return runId;
+  }
+  /**
+   * Start a run and wait until it reaches a terminal status (or timeout).
+   * Used by shadow certification; production approve path stays fire-and-forget.
+   */
+  async startAndAwait(projectId, graphId, graphVersionId, spec, runId = `run_${randomUUID4()}`, timeoutMs = 9e4) {
+    const state = this.beginRun(
+      projectId,
+      graphId,
+      graphVersionId,
+      spec,
+      runId
+    );
+    let timedOut = false;
+    const timeoutTimer = setTimeout(() => {
+      timedOut = true;
+      this.cancel(runId);
+    }, timeoutMs);
+    try {
+      await this.execute(projectId, graphId, spec, state);
+    } finally {
+      clearTimeout(timeoutTimer);
+    }
+    const row = this.store.getRun(runId);
+    if (!row) {
+      throw new Error("Run not found after shadow execution");
+    }
+    if (timedOut) {
+      return {
+        runId,
+        status: row.status,
+        state: row.state,
+        error: "SHADOW_TIMEOUT"
+      };
+    }
+    if (row.status === "completed") {
+      return {
+        runId,
+        status: row.status,
+        state: row.state
+      };
+    }
+    return {
+      runId,
+      status: row.status,
+      state: row.state,
+      error: String(row.state.finalStatus)
+    };
+  }
+  beginRun(projectId, graphId, graphVersionId, spec, runId) {
     compileGraphSpec(spec, async function createCompileContext() {
       return {};
     });
@@ -140347,8 +140568,7 @@ var GraphRuntime = class {
       type: "graph.status",
       payload: { status: "running" }
     });
-    void this.execute(projectId, graphId, spec, state);
-    return runId;
+    return state;
   }
   async resume(projectId, runId, spec) {
     const row = this.store.getRun(runId);
@@ -140487,6 +140707,11 @@ function createFlappyBirdSpec(root) {
     version: "1.0",
     executionMode: "graph",
     goal: "Build a playable Flappy Bird browser mini-game with Claude Code",
+    goalCharter: {
+      strategic: "Ship a genuinely playable browser game without sacrificing maintainability or honest README instructions.",
+      medium: "Reject stub implementations and README gaps even when required files exist on disk.",
+      fast: "Deliver index.html, style.css, game.js, and README with flap, pipes, collision, score, and restart."
+    },
     acceptanceCriteria: [
       "index.html, style.css, and game.js exist",
       "The game is playable in a browser without a build step",
@@ -140497,8 +140722,8 @@ function createFlappyBirdSpec(root) {
       baseRef: "main"
     },
     policies: {
-      maxParallel: 1,
-      maxGraphDepth: 4,
+      maxParallel: 2,
+      maxGraphDepth: 8,
       maxNodeAttempts: 2,
       maxRuntimeSeconds: 900,
       networkPolicy: "approval_required",
@@ -140508,20 +140733,38 @@ function createFlappyBirdSpec(root) {
     },
     nodes: [
       node2({
-        id: "plan_game",
-        title: "Plan Flappy Bird",
+        id: "strat_game_direction",
+        title: "Anchor game direction",
         kind: "analysis",
-        objective: "Inspect this empty repository and print a short implementation plan for a vanilla Canvas Flappy Bird clone (index.html, style.css, game.js, README). Do not create or modify any files in this analysis step.",
+        objective: "Freeze the product direction for a small, genuinely playable vanilla Canvas Flappy Bird game: immediate controls, readable score and state, fair collision, restart, pause, responsive presentation, and honest no-build documentation. Do not modify files.",
         inputs: ["repo"],
-        outputs: [{ name: "repo-map.json", type: "json" }],
+        outputs: [{ name: "game-direction.json", type: "json" }],
         timeoutSeconds: 180
       }),
       node2({
-        id: "implement_game",
+        id: "fast_gameplay_design",
+        title: "Design gameplay loop",
+        kind: "analysis",
+        objective: "Design the concrete Canvas game loop from the frozen direction: bird physics, flap input, deterministic pipe movement, scoring, collision, pause, game-over, and restart states. Emit an implementation-ready gameplay plan without modifying files.",
+        inputs: ["game-direction.json"],
+        outputs: [{ name: "gameplay-plan.json", type: "json" }],
+        timeoutSeconds: 180
+      }),
+      node2({
+        id: "fast_visual_design",
+        title: "Design visual system",
+        kind: "analysis",
+        objective: "Design a compact responsive visual system from the frozen direction: canvas framing, accessible contrast, score and state overlays, control hints, mobile sizing, and a polished arcade feel. Emit an implementation-ready visual plan without modifying files.",
+        inputs: ["game-direction.json"],
+        outputs: [{ name: "visual-plan.json", type: "json" }],
+        timeoutSeconds: 180
+      }),
+      node2({
+        id: "fast_implement_game",
         title: "Implement Flappy Bird",
         kind: "worker",
-        objective: "Build a complete playable Flappy Bird clone in this worktree: index.html, style.css, and game.js using vanilla JS + Canvas. Support Space/click/tap flap, scrolling pipes, gravity, collision, score, Game Over restart, and P to pause. Update README with how to play. No npm dependencies.",
-        inputs: ["repo-map.json"],
+        objective: "Implement both approved plans as a complete playable Flappy Bird game in this worktree: index.html, style.css, and game.js using vanilla JavaScript and Canvas. Support Space/click/tap flap, scrolling pipes, gravity, collision, score, game-over restart, P to pause, responsive sizing, and clear status UI. Update README with exact open and play instructions. No npm dependencies.",
+        inputs: ["gameplay-plan.json", "visual-plan.json"],
         outputs: [{ name: "game.patch", type: "git_patch" }],
         workspace: {
           mode: "worktree",
@@ -140546,6 +140789,18 @@ function createFlappyBirdSpec(root) {
             command: "test -f style.css",
             description: "style.css exists",
             frozen: true
+          },
+          {
+            type: "command",
+            command: "node --check game.js",
+            description: "game.js has valid JavaScript syntax",
+            frozen: true
+          },
+          {
+            type: "command",
+            command: "grep -Eqi 'space|click|tap' README.md && grep -Eqi 'pause|restart' README.md",
+            description: "README documents core controls",
+            frozen: true
           }
         ],
         retryPolicy: {
@@ -140561,39 +140816,89 @@ function createFlappyBirdSpec(root) {
         }
       }),
       node2({
-        id: "fresh_verify",
-        title: "Fresh verification",
+        id: "fast_verifier",
+        title: "Fast loop verification",
         kind: "verifier",
-        objective: "Reject the Flappy Bird result if playable evidence is incomplete: missing files, empty stubs, or README that does not explain how to open and play.",
+        objective: "Reject the Flappy Bird result if playable evidence is incomplete: missing files, empty stubs, or broken game loop.",
         inputs: ["game.patch"],
-        outputs: [{ name: "verification.json", type: "json" }],
+        outputs: [{ name: "fast-verification.json", type: "json" }],
         timeoutSeconds: 180
       }),
       node2({
-        id: "accept_game",
+        id: "mid_verifier",
+        title: "Medium loop verification",
+        kind: "verifier",
+        objective: "Kill a green Fast score when README instructions are incomplete, controls are undocumented, or gameplay evidence looks gamed.",
+        inputs: ["fast-verification.json", "game.patch"],
+        outputs: [{ name: "mid-verification.json", type: "json" }],
+        timeoutSeconds: 180
+      }),
+      node2({
+        id: "guard_game_integrity",
+        title: "Guard gameplay integrity",
+        kind: "verifier",
+        objective: "Arbitrate Fast delivery against Medium evidence. Reject success if controls are merely documented but not wired, collision or scoring is stubbed, the game cannot restart, syntax checks were bypassed, or the implementation depends on undeclared tooling.",
+        inputs: ["mid-verification.json", "game.patch"],
+        outputs: [{ name: "guard-verdict.json", type: "json" }],
+        acceptanceChecks: [
+          {
+            type: "artifact",
+            description: "Guard verdict records physical checks and patch inspection",
+            frozen: true
+          }
+        ],
+        timeoutSeconds: 180
+      }),
+      node2({
+        id: "strat_accept_game",
         title: "Accept Flappy Bird",
         kind: "acceptance",
-        objective: "Summarize that the Flappy Bird implementation passed physical checks and record final acceptance. Do not modify files.",
-        inputs: ["verification.json"],
+        objective: "Accept only when the Guard verdict shows the implementation is genuinely playable, the Medium loop found no gaming or documentation gap, all physical checks passed, and the result still honors the frozen game direction. Record a concise final report without modifying files.",
+        inputs: ["guard-verdict.json", "game.patch"],
         outputs: [{ name: "run-report.json", type: "test_report" }],
         timeoutSeconds: 120
       })
     ],
     edges: [
       {
-        from: "plan_game",
-        to: "implement_game",
-        artifacts: ["repo-map.json"]
+        from: "strat_game_direction",
+        to: "fast_gameplay_design",
+        artifacts: ["game-direction.json"]
       },
       {
-        from: "implement_game",
-        to: "fresh_verify",
+        from: "strat_game_direction",
+        to: "fast_visual_design",
+        artifacts: ["game-direction.json"]
+      },
+      {
+        from: "fast_gameplay_design",
+        to: "fast_implement_game",
+        artifacts: ["gameplay-plan.json"]
+      },
+      {
+        from: "fast_visual_design",
+        to: "fast_implement_game",
+        artifacts: ["visual-plan.json"]
+      },
+      {
+        from: "fast_implement_game",
+        to: "fast_verifier",
         artifacts: ["game.patch"]
       },
       {
-        from: "fresh_verify",
-        to: "accept_game",
-        artifacts: ["verification.json"]
+        from: "fast_verifier",
+        to: "mid_verifier",
+        artifacts: ["fast-verification.json", "game.patch"]
+      },
+      {
+        from: "mid_verifier",
+        to: "guard_game_integrity",
+        artifacts: ["mid-verification.json", "game.patch"]
+      },
+      {
+        from: "guard_game_integrity",
+        to: "strat_accept_game",
+        artifacts: ["guard-verdict.json", "game.patch"]
       }
     ]
   };
@@ -140639,6 +140944,11 @@ function createDemoSpec(root, goal = "Build and verify a resilient feature in th
     version: "1.0",
     executionMode: "graph",
     goal,
+    goalCharter: {
+      strategic: "Deliver a resilient sample feature without sacrificing auditability or human approval boundaries.",
+      medium: "Integration survives adversarial review on diff and cross-module evidence, not only scoped unit tests.",
+      fast: "Parallel workers complete in isolated worktrees with passing scoped tests and named artifacts."
+    },
     acceptanceCriteria: [
       "Both parallel workers complete",
       "A failed verification retries in a fresh session",
@@ -140748,19 +141058,27 @@ function createDemoSpec(root, goal = "Build and verify a resilient feature in th
         }
       }),
       createDemoNode({
-        id: "fresh_verify",
-        title: "Fresh verification",
+        id: "fast_verifier",
+        title: "Fast loop verification",
         kind: "verifier",
-        objective: "Seek objective reasons to reject the integrated result using diff and test evidence only.",
+        objective: "Reject the integrated result when scoped worker evidence is incomplete or tests were gamed.",
         inputs: ["integration.diff"],
-        outputs: [{ name: "verification.json", type: "json" }]
+        outputs: [{ name: "fast-verification.json", type: "json" }]
+      }),
+      createDemoNode({
+        id: "mid_verifier",
+        title: "Medium loop verification",
+        kind: "verifier",
+        objective: "Kill a green Fast score when diff integrity, cross-module coupling, or rationale audits fail on different evidence.",
+        inputs: ["fast-verification.json", "integration.diff"],
+        outputs: [{ name: "mid-verification.json", type: "json" }]
       }),
       createDemoNode({
         id: "acceptance",
         title: "Acceptance suite",
         kind: "acceptance",
         objective: "Run the final acceptance suite and publish the complete execution report.",
-        inputs: ["verification.json"],
+        inputs: ["mid-verification.json"],
         outputs: [{ name: "run-report.json", type: "test_report" }],
         acceptanceChecks: [
           {
@@ -140795,23 +141113,193 @@ function createDemoSpec(root, goal = "Build and verify a resilient feature in th
       },
       {
         from: "integrate",
-        to: "fresh_verify",
+        to: "fast_verifier",
         artifacts: ["integration.diff"]
       },
       {
-        from: "fresh_verify",
+        from: "fast_verifier",
+        to: "mid_verifier",
+        artifacts: ["fast-verification.json", "integration.diff"]
+      },
+      {
+        from: "mid_verifier",
         to: "acceptance",
-        artifacts: ["verification.json"]
+        artifacts: ["mid-verification.json"]
       }
     ]
   };
 }
 
+// packages/graph-runtime/src/shadow-run.ts
+import { mkdtemp, rm as rm2 } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join as join7 } from "node:path";
+var DEFAULT_SHADOW_TIMEOUT_MS = 9e4;
+var SHADOW_NODE_TIMEOUT_CAP_SECONDS = 30;
+var SHADOW_PASS_COMMAND = `${process.execPath} -e "process.exit(0)"`;
+async function probeCommandBinaries(spec) {
+  const binaries = /* @__PURE__ */ new Set();
+  for (const node3 of spec.nodes) {
+    for (const check2 of node3.acceptanceChecks) {
+      if (check2.type !== "command" || !check2.command) {
+        continue;
+      }
+      const [binary] = splitCommand(check2.command);
+      if (binary) {
+        binaries.add(binary);
+      }
+    }
+  }
+  const missing = [];
+  for (const binary of binaries) {
+    if (binary.includes("/") || binary.includes("\\")) {
+      continue;
+    }
+    const result = await execa("which", [binary], {
+      env: safeEnvironment(),
+      reject: false
+    });
+    if (result.exitCode !== 0) {
+      missing.push(binary);
+    }
+  }
+  return missing;
+}
+function prepareShadowSpec(spec, shadowRepoRoot) {
+  return {
+    ...spec,
+    repository: {
+      ...spec.repository,
+      root: shadowRepoRoot
+    },
+    policies: {
+      ...spec.policies,
+      maxRuntimeSeconds: Math.min(spec.policies.maxRuntimeSeconds, 120)
+    },
+    nodes: spec.nodes.map(function softenNode(node3) {
+      return {
+        ...node3,
+        timeoutSeconds: Math.min(
+          node3.timeoutSeconds,
+          SHADOW_NODE_TIMEOUT_CAP_SECONDS
+        ),
+        acceptanceChecks: node3.acceptanceChecks.map(function softenCheck(check2) {
+          if (check2.type === "command" && check2.command) {
+            return {
+              ...check2,
+              command: SHADOW_PASS_COMMAND,
+              description: `shadow soft-check for: ${check2.command}`
+            };
+          }
+          return check2;
+        })
+      };
+    })
+  };
+}
+async function cloneShadowRepository(sourceRoot) {
+  const shadowRoot = await mkdtemp(join7(tmpdir(), "graph-shadow-"));
+  const clone2 = await execa(
+    "git",
+    ["clone", "--local", "--no-hardlinks", "--quiet", sourceRoot, shadowRoot],
+    {
+      env: safeEnvironment(),
+      reject: false
+    }
+  );
+  if (clone2.exitCode !== 0) {
+    await rm2(shadowRoot, { recursive: true, force: true });
+    throw new Error(
+      `SHADOW_CLONE_FAILED:${clone2.stderr.trim() || clone2.stdout.trim() || "git clone failed"}`
+    );
+  }
+  return shadowRoot;
+}
+function failedNodesFromState(nodeIndex) {
+  const failed = Object.entries(nodeIndex).filter(function isFailed([, status]) {
+    return status !== "succeeded" && status !== "pending";
+  }).map(function nodeId([id]) {
+    return id;
+  });
+  return failed.length > 0 ? failed : void 0;
+}
+async function runShadowCertification(spec, options = {}) {
+  const startedAt = Date.now();
+  const timeoutMs = options.timeoutMs ?? DEFAULT_SHADOW_TIMEOUT_MS;
+  const missingBinaries = await probeCommandBinaries(spec);
+  if (missingBinaries.length > 0) {
+    return {
+      ok: false,
+      mode: "mock_shadow",
+      status: "failed",
+      durationMs: Date.now() - startedAt,
+      error: "MISSING_ACCEPTANCE_BINARIES",
+      missingBinaries
+    };
+  }
+  let shadowRoot;
+  let dataDir;
+  let store;
+  try {
+    shadowRoot = await cloneShadowRepository(spec.repository.root);
+    const shadowSpec = prepareShadowSpec(spec, shadowRoot);
+    dataDir = await mkdtemp(join7(tmpdir(), "graph-shadow-db-"));
+    store = new EventStore(join7(dataDir, "shadow.sqlite"), join7(dataDir, "runs"));
+    const projectId = store.createProject(shadowRoot);
+    const published = store.publishGraph(projectId, shadowSpec);
+    store.approve(published.graphVersionId, "shadow-certifier");
+    const runtime = new GraphRuntime(store, new MockAcpAgent());
+    const result = await runtime.startAndAwait(
+      projectId,
+      published.graphId,
+      published.graphVersionId,
+      shadowSpec,
+      `run_shadow_${Date.now()}`,
+      timeoutMs
+    );
+    const ok = result.status === "completed";
+    if (ok) {
+      return {
+        ok: true,
+        mode: "mock_shadow",
+        status: result.status,
+        durationMs: Date.now() - startedAt
+      };
+    }
+    const failedNodes = failedNodesFromState(result.state.nodeIndex);
+    return {
+      ok: false,
+      mode: "mock_shadow",
+      status: result.status,
+      durationMs: Date.now() - startedAt,
+      error: result.error ?? `SHADOW_STATUS_${result.status}`,
+      ...failedNodes ? { failedNodes } : {}
+    };
+  } catch (error61) {
+    const message = error61 instanceof Error ? error61.message : String(error61);
+    return {
+      ok: false,
+      mode: "mock_shadow",
+      status: "failed",
+      durationMs: Date.now() - startedAt,
+      error: message
+    };
+  } finally {
+    store?.close();
+    if (shadowRoot) {
+      await rm2(shadowRoot, { recursive: true, force: true });
+    }
+    if (dataDir) {
+      await rm2(dataDir, { recursive: true, force: true });
+    }
+  }
+}
+
 // packages/agent-registry/src/index.ts
 import { constants as constants4 } from "node:fs";
 import { access as access2 } from "node:fs/promises";
-import { homedir as homedir2 } from "node:os";
-import { delimiter, join as join7 } from "node:path";
+import { homedir as homedir3 } from "node:os";
+import { delimiter, join as join10 } from "node:path";
 
 // packages/agent-registry/src/capabilities.ts
 var WORKER_BASE_CAPABILITIES = [
@@ -140983,7 +141471,7 @@ var AGENT_CANDIDATES = [
 // packages/agent-registry/src/mcp-inventory.ts
 import { readFile as readFile2 } from "node:fs/promises";
 import { homedir } from "node:os";
-import { join as join6 } from "node:path";
+import { join as join8 } from "node:path";
 var MCP_CONFIGS_BY_AGENT = {
   cursor: [
     {
@@ -141122,7 +141610,7 @@ async function listMcpServersForAgent(agentId, homeDir = homedir()) {
   const seen = /* @__PURE__ */ new Set();
   const refs = [];
   for (const descriptor of descriptors2) {
-    const absolutePath = join6(homeDir, descriptor.relPath);
+    const absolutePath = join8(homeDir, descriptor.relPath);
     const raw = await readOptionalText(absolutePath);
     if (raw === null) {
       continue;
@@ -141142,10 +141630,229 @@ async function listMcpServersForAgent(agentId, homeDir = homedir()) {
   return refs.sort((left, right) => left.name.localeCompare(right.name));
 }
 
+// packages/agent-registry/src/planner-brief.ts
+var KEY_CAPABILITY_PRIORITY = [
+  "browser",
+  "github",
+  "sentry",
+  "error_tracking",
+  "datadog",
+  "observability",
+  "posthog",
+  "analytics",
+  "notion",
+  "linear",
+  "slack",
+  "web_search",
+  "docs_lookup",
+  "database",
+  "filesystem.write",
+  "filesystem.read",
+  "terminal",
+  "tool_calls"
+];
+function pickKeyCapabilities(capabilities) {
+  const set2 = new Set(capabilities);
+  const picked = [];
+  for (const tag of KEY_CAPABILITY_PRIORITY) {
+    if (set2.has(tag)) {
+      picked.push(tag);
+    }
+  }
+  for (const tag of capabilities) {
+    if (tag.startsWith("mcp:") || tag.startsWith("skill:")) {
+      picked.push(tag);
+    }
+  }
+  return [...new Set(picked)].slice(0, 24);
+}
+function agentRole(agent) {
+  return agent.transport === "invocation_surface_only" ? "planner_surface" : "worker";
+}
+function buildPlannerBrief(agents) {
+  const usable = agents.filter(
+    (agent) => agent.healthStatus === "healthy" || agent.healthStatus === "surface_only"
+  );
+  const usableAgents = usable.map((agent) => ({
+    id: agent.id,
+    displayName: agent.displayName,
+    healthStatus: agent.healthStatus,
+    role: agentRole(agent),
+    mcpServers: [...agent.mcpServers],
+    skills: agent.skills.map((skill) => ({
+      name: skill.name,
+      description: skill.description
+    })),
+    keyCapabilities: pickKeyCapabilities(agent.capabilities)
+  }));
+  const workers = usableAgents.filter((agent) => agent.role === "worker");
+  const withTools = usableAgents.filter(
+    (agent) => agent.mcpServers.length > 0 || agent.skills.length > 0
+  );
+  const summary = [
+    "Startup inventory for node\u2192agent assignment.",
+    `Usable agents: ${usableAgents.map((agent) => agent.id).join(", ") || "(none)"}.`,
+    `Workers: ${workers.map((agent) => agent.id).join(", ") || "(none)"}.`,
+    withTools.length > 0 ? `MCP/skill coverage on: ${withTools.map((agent) => agent.id).join(", ")}.` : "No MCP servers or skills detected under known host paths.",
+    "Use requiredCapabilities / preferredAgents per node; do not paste raw tool schemas into objectives."
+  ].join(" ");
+  const assignmentHints = [
+    "For each graph node, choose an agent whose keyCapabilities cover the node\u2019s requiredCapabilities.",
+    "Prefer preferredAgents when several agents share the same capability tags.",
+    "Use skill:<name> when a node depends on a host skill workflow (e.g. skill:graph is the planner entrypoint, not a worker node).",
+    "Use mcp:<server> or domain tags (browser, github, \u2026) when a node needs that integration.",
+    "Default code workers to filesystem.read + filesystem.write + terminal when no special MCP/skill is required."
+  ];
+  return { summary, usableAgents, assignmentHints };
+}
+
+// packages/agent-registry/src/skills-inventory.ts
+import { readdir as readdir3, readFile as readFile3 } from "node:fs/promises";
+import { homedir as homedir2 } from "node:os";
+import { join as join9, relative } from "node:path";
+var SKILL_ROOTS_BY_AGENT = {
+  cursor: [".cursor/skills", ".agents/skills"],
+  claude: [".claude/skills", ".agents/skills"],
+  codex: [".codex/skills", ".agents/skills"],
+  kimi: [".kimi/skills", ".agents/skills"],
+  gemini: [".gemini/skills", ".agents/skills"],
+  qwen: [".qwen/skills", ".agents/skills"],
+  openclaw: [".openclaw/skills", ".agents/skills"],
+  hermes: [".hermes/skills"],
+  qoder: [".qoder/skills", ".agents/skills"],
+  zcode: [".zcode/skills", ".agents/skills"]
+};
+var MAX_SKILL_DEPTH = 4;
+var MAX_DESCRIPTION_CHARS = 160;
+var MAX_SKILLS_PER_AGENT = 48;
+function truncateDescription(value) {
+  const collapsed = value.replace(/\s+/g, " ").trim();
+  if (collapsed.length <= MAX_DESCRIPTION_CHARS) {
+    return collapsed;
+  }
+  return `${collapsed.slice(0, MAX_DESCRIPTION_CHARS - 1)}\u2026`;
+}
+function parseFrontmatterField(raw, field) {
+  const blockMatch = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!blockMatch?.[1]) {
+    return null;
+  }
+  const lines = blockMatch[1].split(/\r?\n/);
+  for (let index2 = 0; index2 < lines.length; index2 += 1) {
+    const currentLine = lines[index2];
+    if (currentLine === void 0) {
+      continue;
+    }
+    const header = currentLine.match(new RegExp(`^${field}:\\s*(.*)$`));
+    if (!header) {
+      continue;
+    }
+    const value = (header[1] ?? "").trim();
+    if (/^[>|][-+]?$/.test(value)) {
+      const parts = [];
+      for (let cursor = index2 + 1; cursor < lines.length; cursor += 1) {
+        const line = lines[cursor];
+        if (line === void 0) {
+          break;
+        }
+        if (/^[A-Za-z0-9_-]+:\s*/.test(line)) {
+          break;
+        }
+        if (/^[ \t]+/.test(line)) {
+          parts.push(line.replace(/^[ \t]+/, ""));
+          continue;
+        }
+        if (line.trim() === "") {
+          break;
+        }
+        break;
+      }
+      return truncateDescription(parts.join(" "));
+    }
+    if (value.length > 0) {
+      return truncateDescription(value.replace(/^["']|["']$/g, ""));
+    }
+  }
+  return null;
+}
+function skillNameFromPath(skillFile, frontmatterName) {
+  if (frontmatterName && frontmatterName.length > 0) {
+    return frontmatterName;
+  }
+  const parts = skillFile.split(/[/\\]/);
+  const skillDir = parts.length >= 2 ? parts[parts.length - 2] : void 0;
+  return skillDir && skillDir.length > 0 ? skillDir : "skill";
+}
+async function listSkillMarkdownFiles(root, depth) {
+  if (depth > MAX_SKILL_DEPTH) {
+    return [];
+  }
+  let entries;
+  try {
+    entries = await readdir3(root, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  const files = [];
+  for (const entry of entries) {
+    const absolute = join9(root, entry.name);
+    if (entry.isDirectory() || entry.isSymbolicLink()) {
+      files.push(...await listSkillMarkdownFiles(absolute, depth + 1));
+      continue;
+    }
+    if (entry.isFile() && entry.name.toLowerCase() === "skill.md") {
+      files.push(absolute);
+    }
+  }
+  return files;
+}
+async function listSkillsForAgent(agentId, homeDir = homedir2()) {
+  const roots = SKILL_ROOTS_BY_AGENT[agentId] ?? [];
+  const seen = /* @__PURE__ */ new Set();
+  const skills = [];
+  for (const relRoot of roots) {
+    const absoluteRoot = join9(homeDir, relRoot);
+    const skillFiles = await listSkillMarkdownFiles(absoluteRoot, 0);
+    for (const skillFile of skillFiles) {
+      let raw;
+      try {
+        raw = await readFile3(skillFile, "utf8");
+      } catch {
+        continue;
+      }
+      const name = skillNameFromPath(
+        skillFile,
+        parseFrontmatterField(raw, "name")
+      );
+      const key = name.toLowerCase();
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      skills.push({
+        name,
+        description: parseFrontmatterField(raw, "description") ?? "Agent skill (no description in frontmatter).",
+        relPath: relative(homeDir, skillFile).split("\\").join("/")
+      });
+      if (skills.length >= MAX_SKILLS_PER_AGENT) {
+        return skills.sort((left, right) => left.name.localeCompare(right.name));
+      }
+    }
+  }
+  return skills.sort((left, right) => left.name.localeCompare(right.name));
+}
+function capabilitiesFromSkill(skillName) {
+  const normalized = skillName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 64);
+  if (!normalized) {
+    return [];
+  }
+  return [`skill:${normalized}`];
+}
+
 // packages/agent-registry/src/index.ts
 async function findBinary(name) {
   for (const dir of (process.env.PATH ?? "").split(delimiter)) {
-    const path9 = join7(dir, name);
+    const path9 = join10(dir, name);
     try {
       await access2(path9, constants4.X_OK);
       return path9;
@@ -141154,23 +141861,41 @@ async function findBinary(name) {
   }
   return null;
 }
-async function enrichWithMcpInventory(installation, homeDir) {
-  const mcpRefs = await listMcpServersForAgent(installation.id, homeDir);
-  if (mcpRefs.length === 0) {
+async function enrichWithHostInventory(installation, homeDir) {
+  const [mcpRefs, skillRefs] = await Promise.all([
+    listMcpServersForAgent(installation.id, homeDir),
+    listSkillsForAgent(installation.id, homeDir)
+  ]);
+  if (mcpRefs.length === 0 && skillRefs.length === 0) {
     return installation;
   }
   const mcpServers = mcpRefs.map((ref) => ref.name);
+  const skills = skillRefs.map((ref) => ({
+    name: ref.name,
+    description: ref.description
+  }));
   const mcpCapabilities = mcpServers.flatMap(
     (name) => capabilitiesFromMcpServer(name)
   );
-  const sources = [
-    ...installation.capabilitySources,
-    "mcp_config"
-  ];
+  const skillCapabilities = skills.flatMap(
+    (skill) => capabilitiesFromSkill(skill.name)
+  );
+  const sources = [...installation.capabilitySources];
+  if (mcpServers.length > 0) {
+    sources.push("mcp_config");
+  }
+  if (skills.length > 0) {
+    sources.push("skills");
+  }
   return {
     ...installation,
     mcpServers,
-    capabilities: mergeCapabilities(installation.capabilities, mcpCapabilities),
+    skills,
+    capabilities: mergeCapabilities(
+      installation.capabilities,
+      mcpCapabilities,
+      skillCapabilities
+    ),
     capabilitySources: [...new Set(sources)]
   };
 }
@@ -141186,6 +141911,7 @@ function createUnavailableInstallation(candidate, lastProbeTime) {
     authStatus: isInvocationSurface ? "not_applicable" : "unknown",
     capabilities: [...candidate.capabilities],
     mcpServers: [],
+    skills: [],
     capabilitySources: ["candidate"],
     lastProbeTime,
     healthStatus: isInvocationSurface ? "surface_only" : "unavailable",
@@ -141204,6 +141930,7 @@ function createInstallation(candidate, binaryPath, lastProbeTime, version5, heal
     authStatus: isInvocationSurface ? "not_applicable" : "unknown",
     capabilities: [...candidate.capabilities],
     mcpServers: [],
+    skills: [],
     capabilitySources: ["candidate"],
     lastProbeTime,
     healthStatus: isInvocationSurface ? "surface_only" : healthy ? "healthy" : "unavailable",
@@ -141243,14 +141970,16 @@ async function probeCandidate(candidate, lastProbeTime) {
 }
 async function discoverAgents(options = {}) {
   const lastProbeTime = (/* @__PURE__ */ new Date()).toISOString();
-  const homeDir = options.homeDir ?? homedir2();
+  const homeDir = options.homeDir ?? homedir3();
   const probed = await Promise.all(
     AGENT_CANDIDATES.map(
       (candidate) => probeCandidate(candidate, lastProbeTime)
     )
   );
   return Promise.all(
-    probed.map((installation) => enrichWithMcpInventory(installation, homeDir))
+    probed.map(
+      (installation) => enrichWithHostInventory(installation, homeDir)
+    )
   );
 }
 function buildPlannerNotes(agents) {
@@ -141258,18 +141987,32 @@ function buildPlannerNotes(agents) {
     (agent) => agent.healthStatus === "healthy" || agent.healthStatus === "surface_only"
   );
   const withMcp = usable.filter((agent) => agent.mcpServers.length > 0);
+  const withSkills = usable.filter((agent) => agent.skills.length > 0);
   const notes = [
-    "Prefer agentSelector.requiredCapabilities using availableCapabilities tags; avoid embedding raw MCP tool schemas in node objectives.",
-    "Match domain needs (browser, github, sentry, \u2026) to agentsByCapability; fall back to mcp:<server> tags when no domain alias exists.",
-    "MCP inventory is name-only (no env/args/tokens). Treat it as a planning hint; runtime may still lack auth or live tools."
+    "Startup: read plannerBrief first \u2014 it is the condensed MCP+skills packet for node\u2192agent decisions.",
+    "Before proposing a graph: confirm a Goal Charter with the human \u2014 Strategic / Medium / Fast goals that mutually constrain each other, then write them to spec.goalCharter.",
+    "Draft three loop bodies (fast_worker+fast_verifier, mid_verifier with different evidence, strat human/acceptance). Not a single self-scoring KPI loop.",
+    "Dashboard is display-only. Infer user intent: Execute \u2192 graph_start_run; Revise \u2192 graph_propose_amendment; Plan \u2192 Goal Charter then publish. Do not match fixed trigger phrases.",
+    "Prefer agentSelector.requiredCapabilities using availableCapabilities tags; avoid embedding raw MCP tool schemas or full skill bodies in node objectives.",
+    "Match domain needs (browser, github, sentry, \u2026) to agentsByCapability; fall back to mcp:<server> or skill:<name> tags when needed.",
+    "MCP inventory is name-only; skills are name+short description only. Treat both as planning hints; runtime may still lack auth."
   ];
   if (withMcp.length === 0) {
     notes.push(
-      "No host MCP server names were found under known config paths; plan with base worker capabilities (filesystem.*, terminal) unless the user states otherwise."
+      "No host MCP server names were found under known config paths; plan with base worker capabilities unless the user states otherwise."
     );
   } else {
     notes.push(
       `MCP server names detected for: ${withMcp.map((agent) => `${agent.id}[${agent.mcpServers.join(",")}]`).join("; ")}.`
+    );
+  }
+  if (withSkills.length === 0) {
+    notes.push("No host skills were found under known skill roots.");
+  } else {
+    notes.push(
+      `Skills detected for: ${withSkills.map(
+        (agent) => `${agent.id}[${agent.skills.map((skill) => skill.name).join(",")}]`
+      ).join("; ")}.`
     );
   }
   return notes;
@@ -141286,13 +142029,14 @@ async function discoverEnvironment(options = {}) {
     agents,
     availableCapabilities,
     agentsByCapability: indexAgentsByCapability(usable),
-    plannerNotes: buildPlannerNotes(agents)
+    plannerNotes: buildPlannerNotes(agents),
+    plannerBrief: buildPlannerBrief(agents)
   };
 }
 
 // packages/repo-intelligence/src/index.ts
-import { readFile as readFile3 } from "node:fs/promises";
-import { join as join8 } from "node:path";
+import { readFile as readFile4 } from "node:fs/promises";
+import { join as join11 } from "node:path";
 var RULE_FILE_NAMES = ["AGENTS.md", "CLAUDE.md"];
 var MAX_RULE_FILE_LENGTH = 8e3;
 function isJsonObject(value) {
@@ -141300,7 +142044,7 @@ function isJsonObject(value) {
 }
 async function readPackageJson(root) {
   try {
-    const contents = await readFile3(join8(root, "package.json"), "utf8");
+    const contents = await readFile4(join11(root, "package.json"), "utf8");
     const parsed = JSON.parse(contents);
     return isJsonObject(parsed) ? parsed : null;
   } catch {
@@ -141311,7 +142055,7 @@ async function readRepositoryRules(root) {
   const rules = [];
   for (const fileName of RULE_FILE_NAMES) {
     try {
-      const contents = await readFile3(join8(root, fileName), "utf8");
+      const contents = await readFile4(join11(root, fileName), "utf8");
       rules.push(`${fileName}:
 ${contents.slice(0, MAX_RULE_FILE_LENGTH)}`);
     } catch {
@@ -141377,8 +142121,54 @@ function registerAuth(app, token) {
   });
 }
 
+// packages/daemon-core/src/comment-routes.ts
+function registerCommentRoutes(app, context2) {
+  app.get(
+    "/api/graphs/:id/comments",
+    async function listComments(request) {
+      const graph = context2.store.getGraph(request.params.id);
+      if (!graph) {
+        return { error: "NOT_FOUND" };
+      }
+      return {
+        comments: context2.store.listNodeComments(
+          request.params.id,
+          request.query.nodeId
+        )
+      };
+    }
+  );
+  app.post(
+    "/api/graphs/:id/comments",
+    async function createComment(request, reply) {
+      const graph = context2.store.getGraph(request.params.id);
+      if (!graph) {
+        return { error: "NOT_FOUND" };
+      }
+      const nodeId = request.body.nodeId?.trim();
+      const body = request.body.body?.trim();
+      if (!nodeId || !body) {
+        return reply.code(400).send({ error: "INVALID_COMMENT" });
+      }
+      const knownNode = graph.spec.nodes.some(function matchesNode(node3) {
+        return node3.id === nodeId;
+      });
+      if (!knownNode) {
+        return reply.code(400).send({ error: "UNKNOWN_NODE" });
+      }
+      const comment = context2.store.addNodeComment(
+        request.params.id,
+        nodeId,
+        body,
+        request.body.role === "system" ? "system" : "user"
+      );
+      return { comment };
+    }
+  );
+}
+
 // packages/daemon-core/src/context.ts
-import { dirname as dirname2, join as join9, resolve } from "node:path";
+import { dirname as dirname2, join as join12, resolve } from "node:path";
 import { fileURLToPath as fileURLToPath3 } from "node:url";
 var moduleDirectory = dirname2(fileURLToPath3(import.meta.url));
 function resolveProjectRoot() {
@@ -141390,22 +142180,22 @@ function resolveProjectRoot() {
 
 // packages/daemon-core/src/demo-repository.ts
 import { execFileSync } from "node:child_process";
-import { existsSync as existsSync4, mkdirSync as mkdirSync4, writeFileSync as writeFileSync5 } from "node:fs";
-import { homedir as homedir3 } from "node:os";
-import { dirname as dirname3, join as join10 } from "node:path";
+import { existsSync as existsSync5, mkdirSync as mkdirSync4, writeFileSync as writeFileSync5 } from "node:fs";
+import { homedir as homedir4 } from "node:os";
+import { dirname as dirname3, join as join13 } from "node:path";
 var gitIdentityCommands = [
   ["init", "-b", "main"],
   ["config", "user.email", "graph@example.test"],
   ["config", "user.name", "Graph Demo"]
 ];
 function demoRepositoryRoot() {
-  return process.env.OPENGRAPH_DEMO_REPO ?? join10(homedir3(), ".cache", "opengraph", "sample-repo");
+  return process.env.OPENGRAPH_DEMO_REPO ?? join13(homedir4(), ".cache", "opengraph", "sample-repo");
 }
 function runGit2(root, args) {
   execFileSync("git", [...args], { cwd: root, stdio: "ignore" });
 }
 function ensureDemoRepository(root) {
-  if (existsSync4(join10(root, ".git"))) {
+  if (existsSync5(join13(root, ".git"))) {
     return;
   }
   mkdirSync4(root, { recursive: true });
@@ -141416,8 +142206,8 @@ function ensureDemoRepository(root) {
     "src/dashboard/index.ts": "export const dashboardReady = true;\n"
   };
   for (const [path9, content] of Object.entries(files)) {
-    const target = join10(root, path9);
-    if (!existsSync4(target)) {
+    const target = join13(root, path9);
+    if (!existsSync5(target)) {
       mkdirSync4(dirname3(target), { recursive: true });
       writeFileSync5(target, content);
     }
@@ -141429,18 +142219,18 @@ function ensureDemoRepository(root) {
   runGit2(root, ["commit", "-m", "chore: initialize graph demo"]);
 }
 function flappyBirdRepositoryRoot() {
-  return process.env.OPENGRAPH_FLAPPY_REPO ?? join10(homedir3(), "flappy-bird");
+  return process.env.OPENGRAPH_FLAPPY_REPO ?? join13(homedir4(), "flappy-bird");
 }
 function ensureFlappyBirdRepository(root) {
   mkdirSync4(root, { recursive: true });
-  if (existsSync4(join10(root, ".git"))) {
+  if (existsSync5(join13(root, ".git"))) {
     return;
   }
   for (const args of gitIdentityCommands) {
     runGit2(root, args);
   }
   writeFileSync5(
-    join10(root, "README.md"),
+    join13(root, "README.md"),
     "# Flappy Bird\n\nOpenGraph Claude Code target repository.\n"
   );
   runGit2(root, ["add", "."]);
@@ -141457,8 +142247,21 @@ function riskSummary(spec) {
     maxParallel: spec.policies.maxParallel
   };
 }
+async function certifyOrReject(spec) {
+  const shadowCertification = await runShadowCertification(spec);
+  if (!shadowCertification.ok) {
+    return {
+      ok: false,
+      response: {
+        error: "SHADOW_FAILED",
+        shadowCertification
+      }
+    };
+  }
+  return { ok: true, shadowCertification };
+}
 function registerGraphRoutes(app, context2) {
-  app.get("/api/graphs", async function listGraphs() {
+  app.get("/api/graphs", async function listGraphs2() {
     return context2.store.listGraphs();
   });
   app.get(
@@ -141485,6 +142288,10 @@ function registerGraphRoutes(app, context2) {
         }).join(",")}`
       );
     }
+    const certified = await certifyOrReject(spec);
+    if (!certified.ok) {
+      return certified.response;
+    }
     const projectId = context2.store.createProject(root);
     const published = context2.store.publishGraph(projectId, spec);
     return {
@@ -141501,7 +142308,8 @@ function registerGraphRoutes(app, context2) {
       riskSummary: {
         ...riskSummary(spec),
         approval: "required"
-      }
+      },
+      shadowCertification: certified.shadowCertification
     };
   });
   app.post("/api/graphs/flappy-bird", async function createFlappyBirdGraph() {
@@ -141515,6 +142323,10 @@ function registerGraphRoutes(app, context2) {
           return issue2.code;
         }).join(",")}`
       );
+    }
+    const certified = await certifyOrReject(spec);
+    if (!certified.ok) {
+      return certified.response;
     }
     const projectId = context2.store.createProject(root);
     const published = context2.store.publishGraph(projectId, spec);
@@ -141534,7 +142346,8 @@ function registerGraphRoutes(app, context2) {
       riskSummary: {
         ...riskSummary(spec),
         approval: "required"
-      }
+      },
+      shadowCertification: certified.shadowCertification
     };
   });
   app.post(
@@ -141545,6 +142358,13 @@ function registerGraphRoutes(app, context2) {
       if (!validation.valid) {
         return { error: "VALIDATION_FAILED", validation };
       }
+      const certified = await certifyOrReject(spec);
+      if (!certified.ok) {
+        return {
+          ...certified.response,
+          validation
+        };
+      }
       const projectId = request.body.projectId ?? context2.store.createProject(spec.repository.root);
       const published = context2.store.publishGraph(projectId, spec);
       return {
@@ -141552,7 +142372,8 @@ function registerGraphRoutes(app, context2) {
         projectId,
         dashboardUrl: dashboardUrl(context2, published.graphId),
         validationSummary: validation,
-        riskSummary: riskSummary(spec)
+        riskSummary: riskSummary(spec),
+        shadowCertification: certified.shadowCertification
       };
     }
   );
@@ -141564,9 +142385,39 @@ function registerGraphRoutes(app, context2) {
       if (!validation.valid) {
         return { error: "VALIDATION_FAILED", validation };
       }
+      const certified = await certifyOrReject(spec);
+      if (!certified.ok) {
+        return {
+          ...certified.response,
+          validation
+        };
+      }
       return {
         ...context2.store.amendGraph(request.params.id, spec),
-        validation
+        validation,
+        shadowCertification: certified.shadowCertification
+      };
+    }
+  );
+  app.get(
+    "/api/graphs/:id/runs",
+    async function listGraphRuns(request) {
+      const graph = context2.store.getGraph(request.params.id);
+      if (!graph) {
+        return { error: "NOT_FOUND" };
+      }
+      return {
+        runs: context2.store.listRunsForGraph(request.params.id).map(
+          function summarizeRun(run) {
+            return {
+              id: run.id,
+              status: run.status,
+              created_at: run.created_at,
+              updated_at: run.updated_at,
+              nodeIndex: run.state.nodeIndex ?? {}
+            };
+          }
+        )
       };
     }
   );
@@ -141590,7 +142441,8 @@ function registerGraphRoutes(app, context2) {
         return { error: "NOT_FOUND" };
       }
       try {
-        context2.store.approve(graph.id, "dashboard-human");
+        const actor = typeof request.body?.actor === "string" && request.body.actor.trim() ? request.body.actor.trim() : "host-agent";
+        context2.store.approve(graph.id, actor);
         const projectId = context2.store.getProjectIdForGraph(graphId);
         const runId = await context2.runtime.start(
           projectId,
@@ -141728,9 +142580,9 @@ function registerWebSocketRoutes(app, context2) {
 
 // packages/daemon-core/src/app.ts
 function sessionToken(dataDir) {
-  const tokenPath = join11(dataDir, "session-token");
-  const token = existsSync5(tokenPath) ? readFileSync6(tokenPath, "utf8").trim() : randomBytes(24).toString("base64url");
-  if (!existsSync5(tokenPath)) {
+  const tokenPath = join14(dataDir, "session-token");
+  const token = existsSync6(tokenPath) ? readFileSync7(tokenPath, "utf8").trim() : randomBytes(24).toString("base64url");
+  if (!existsSync6(tokenPath)) {
     writeFileSync6(tokenPath, token, { mode: 384 });
   }
   return token;
@@ -141748,7 +142600,7 @@ function registerSystemRoutes(app, context2) {
   });
 }
 async function registerDashboard(app, webDist) {
-  if (!existsSync5(webDist)) {
+  if (!existsSync6(webDist)) {
     return;
   }
   await app.register(import_static.default, {
@@ -141785,12 +142637,12 @@ async function startDaemon(options = {}) {
   const projectRoot = resolveProjectRoot();
   const host = options.host ?? "127.0.0.1";
   const port = options.port ?? 4317;
-  const dataDir = options.dataDir ?? join11(projectRoot, ".graph-engineer");
+  const dataDir = options.dataDir ?? join14(projectRoot, ".graph-engineer");
   mkdirSync5(dataDir, { recursive: true });
   const token = sessionToken(dataDir);
   const store = new EventStore(
-    join11(dataDir, "graph-engineer.db"),
-    join11(dataDir, "runs")
+    join14(dataDir, "graph-engineer.db"),
+    join14(dataDir, "runs")
   );
   const runtime = new GraphRuntime(store, createRuntimeAgent());
   const app = (0, import_fastify.default)({ logger: false });
@@ -141806,10 +142658,11 @@ async function startDaemon(options = {}) {
   registerAuth(app, token);
   registerSystemRoutes(app, context2);
   registerGraphRoutes(app, context2);
+  registerCommentRoutes(app, context2);
   registerRunRoutes(app, context2);
   registerAgentRepositoryRoutes(app, context2);
   registerWebSocketRoutes(app, context2);
-  const webDist = options.webDist ?? join11(projectRoot, "apps/web/dist");
+  const webDist = options.webDist ?? join14(projectRoot, "apps/web/dist");
   await registerDashboard(app, webDist);
   await app.listen({ host, port });
   resumePersistedRuns(context2);
@@ -141824,47 +142677,115 @@ async function startDaemon(options = {}) {
 
 // packages/plugin-mcp/src/daemon-lifecycle.ts
 var graphdBaseUrl = process.env.GRAPHD_URL ?? "http://127.0.0.1:4317";
+var healthTimeoutMs = 2e3;
 var sessionToken2 = process.env.GRAPHD_SESSION_TOKEN ?? "";
 var ownedDaemon;
+var ensureInFlight = null;
 function getGraphdBaseUrl() {
   return graphdBaseUrl;
 }
 function getSessionToken() {
   return sessionToken2;
 }
-async function ensureDaemon() {
-  const dataDir = process.env.GRAPH_ENGINEER_HOME ?? join12(homedir4(), ".graph");
-  const tokenPath = join12(dataDir, "session-token");
+async function probeDaemonHealth() {
   try {
-    const response = await fetch(`${graphdBaseUrl}/api/health`);
-    if (response.ok) {
-      if (!sessionToken2) {
-        sessionToken2 = readTokenFile(tokenPath);
-      }
-      if (!sessionToken2) {
-        throw missingSessionTokenError();
-      }
-      return;
+    const response = await fetch(`${graphdBaseUrl}/api/health`, {
+      signal: AbortSignal.timeout(healthTimeoutMs)
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+async function ensureDaemon(options = {}) {
+  if (ensureInFlight) {
+    try {
+      await ensureInFlight;
+    } catch {
     }
-  } catch (error61) {
-    if (isMissingSessionTokenError(error61)) {
-      throw error61;
+    if (!options.forceRestart && await probeDaemonHealth()) {
+      const dataDir = process.env.GRAPH_ENGINEER_HOME ?? join15(homedir5(), ".graph");
+      await adoptSessionToken(join15(dataDir, "session-token"));
+      return readyResult(false);
     }
   }
-  const url2 = new URL(graphdBaseUrl);
-  const webDist = resolveDashboardPath();
-  ownedDaemon = await startDaemon({
-    host: url2.hostname,
-    port: Number(url2.port || 4317),
-    dataDir,
-    webDist
+  ensureInFlight = ensureDaemonUnlocked(options).finally(function clearInFlight() {
+    ensureInFlight = null;
   });
+  return ensureInFlight;
+}
+async function ensureDaemonUnlocked(options) {
+  const dataDir = process.env.GRAPH_ENGINEER_HOME ?? join15(homedir5(), ".graph");
+  const tokenPath = join15(dataDir, "session-token");
+  if (!options.forceRestart && await probeDaemonHealth()) {
+    await adoptSessionToken(tokenPath);
+    return readyResult(false);
+  }
+  await stopOwnedDaemon();
+  if (await probeDaemonHealth()) {
+    await adoptSessionToken(tokenPath);
+    return readyResult(false);
+  }
+  const url2 = new URL(graphdBaseUrl);
+  try {
+    ownedDaemon = await startDaemon({
+      host: url2.hostname,
+      port: Number(url2.port || 4317),
+      dataDir,
+      webDist: resolveDashboardPath()
+    });
+  } catch (error61) {
+    if (await probeDaemonHealth()) {
+      await adoptSessionToken(tokenPath);
+      return readyResult(false);
+    }
+    throw new Error(
+      `Failed to start graphd at ${graphdBaseUrl}: ${error61 instanceof Error ? error61.message : String(error61)}`,
+      { cause: error61 }
+    );
+  }
   sessionToken2 = ownedDaemon.token;
+  if (!await probeDaemonHealth()) {
+    throw new Error(
+      `graphd started at ${graphdBaseUrl} but /api/health is not reachable`
+    );
+  }
+  return {
+    baseUrl: graphdBaseUrl,
+    started: true,
+    status: "started"
+  };
+}
+async function adoptSessionToken(tokenPath) {
+  if (!sessionToken2) {
+    sessionToken2 = readTokenFile(tokenPath);
+  }
+  if (!sessionToken2) {
+    throw missingSessionTokenError();
+  }
+}
+function readyResult(started) {
+  return {
+    baseUrl: graphdBaseUrl,
+    started,
+    status: started ? "started" : "ready"
+  };
+}
+async function stopOwnedDaemon() {
+  if (!ownedDaemon) {
+    return;
+  }
+  const handle = ownedDaemon;
+  ownedDaemon = void 0;
+  try {
+    await handle.app.close();
+  } catch {
+  }
 }
 function resolveDashboardPath() {
-  const runtimeRoot = process.env.GRAPH_PLUGIN_ROOT ? join12(process.env.GRAPH_PLUGIN_ROOT, "runtime") : dirname4(fileURLToPath4(import.meta.url));
-  const bundledDashboard = join12(runtimeRoot, "dashboard");
-  const sourceDashboard = join12(
+  const runtimeRoot = process.env.GRAPH_PLUGIN_ROOT ? join15(process.env.GRAPH_PLUGIN_ROOT, "runtime") : dirname4(fileURLToPath4(import.meta.url));
+  const bundledDashboard = join15(runtimeRoot, "dashboard");
+  const sourceDashboard = join15(
     runtimeRoot,
     "..",
     "..",
@@ -141873,15 +142794,12 @@ function resolveDashboardPath() {
     "web",
     "dist"
   );
-  return existsSync6(bundledDashboard) ? bundledDashboard : sourceDashboard;
+  return existsSync7(bundledDashboard) ? bundledDashboard : sourceDashboard;
 }
 function missingSessionTokenError() {
   return new Error(
     `Graph is already running at ${graphdBaseUrl}, but its session token is unavailable. Set GRAPHD_SESSION_TOKEN or stop that process.`
   );
-}
-function isMissingSessionTokenError(error61) {
-  return error61 instanceof Error && error61.message.includes("session token is unavailable");
 }
 
 // packages/plugin-mcp/src/api.ts
@@ -141891,16 +142809,38 @@ var graphd = createApiClient({
   formatHttpError: formatGraphdHttpError
 });
 async function callGraphd(path9, init = {}) {
-  return graphd.request(path9, init);
+  await ensureDaemon();
+  try {
+    return await graphd.request(path9, init);
+  } catch (error61) {
+    if (!isUnreachableGraphdError(error61)) {
+      throw error61;
+    }
+    await ensureDaemon({ forceRestart: true });
+    return graphd.request(path9, init);
+  }
 }
 function formatGraphdHttpError(status, body) {
   return `graphd ${status}: ${body}`;
+}
+function isUnreachableGraphdError(error61) {
+  if (!(error61 instanceof Error)) {
+    return false;
+  }
+  const parts = [error61.name, error61.message];
+  if (error61.cause instanceof Error) {
+    parts.push(error61.cause.name, error61.cause.message);
+  } else if (error61.cause != null) {
+    parts.push(String(error61.cause));
+  }
+  const text2 = parts.join(" ").toLowerCase();
+  return text2.includes("fetch failed") || text2.includes("econnrefused") || text2.includes("econnreset") || text2.includes("enetunreach") || text2.includes("enotfound") || text2.includes("socket hang up") || text2.includes("network") || text2.includes("aborted") || text2.includes("timeout");
 }
 
 // packages/plugin-mcp/src/open-dashboard.ts
 import { spawn as spawn2 } from "node:child_process";
 import { accessSync, constants as constants5 } from "node:fs";
-import { delimiter as delimiter2, join as join13 } from "node:path";
+import { delimiter as delimiter2, join as join16 } from "node:path";
 async function openDashboard(url2) {
   if (process.env.GRAPH_OPEN_DASHBOARD === "false") {
     return { opened: false, method: "disabled" };
@@ -142010,7 +142950,7 @@ function findOnPath(binary) {
     if (!directory) {
       continue;
     }
-    const candidate = join13(directory, binary);
+    const candidate = join16(directory, binary);
     try {
       accessSync(candidate, constants5.X_OK);
       return candidate;
@@ -142051,16 +142991,21 @@ var plannerToolNames = [
   "graph_inspect_repository",
   "graph_validate_spec",
   "graph_publish_draft",
+  "graph_list_graphs",
   "graph_get_graph",
   "graph_get_run_status",
+  "graph_tail_run_events",
+  "graph_start_run",
   "graph_propose_amendment",
+  "graph_list_node_comments",
+  "graph_add_node_comment",
   "graph_open_dashboard"
 ];
 function registerPlannerTools(server) {
   server.registerTool(
     "graph_discover_environment",
     {
-      description: "Discover graphd, coding agents, and a capability inventory for planner agentSelector (stable tags + MCP server names only)."
+      description: "Discover graphd (auto-ensuring it is healthy), coding agents, and a condensed plannerBrief (MCP server names + skills) for node\u2192agent assignment."
     },
     discoverEnvironment2
   );
@@ -142075,7 +143020,7 @@ function registerPlannerTools(server) {
   server.registerTool(
     "graph_validate_spec",
     {
-      description: "Deterministically validate a declarative GraphSpec. Re-run after every edit.",
+      description: "Deterministically validate a declarative GraphSpec. Requires goalCharter (strategic/medium/fast) and three loop bodies for graph mode. Re-run after every edit.",
       inputSchema: { spec: GraphSpecV1 }
     },
     validateSpec
@@ -142083,10 +143028,17 @@ function registerPlannerTools(server) {
   server.registerTool(
     "graph_publish_draft",
     {
-      description: "Publish a validated immutable draft for human review. This does not approve or execute it.",
+      description: "Publish a validated immutable draft for human review after a mock shadow-run certifies the LangGraph can complete. Requires goalCharter and loop-body lint to pass. Returns SHADOW_FAILED (no draft) if the prior walk fails. This does not execute the real run. Dashboard is display-only; after a later explicit Execute request, call graph_start_run directly.",
       inputSchema: { spec: GraphSpecV1 }
     },
     publishDraft
+  );
+  server.registerTool(
+    "graph_list_graphs",
+    {
+      description: "List published graphs (newest first) with id, status, goal, repository root, and version. Use when the user says start/go but graphId is unknown."
+    },
+    listGraphs
   );
   server.registerTool(
     "graph_get_graph",
@@ -142105,6 +143057,29 @@ function registerPlannerTools(server) {
     getRunStatus
   );
   server.registerTool(
+    "graph_tail_run_events",
+    {
+      description: "Fetch new run events after a sequence cursor and summarize them for the host agent chat. Poll this while a run is active to stream logs into the main agent transcript.",
+      inputSchema: {
+        runId: external_exports.string(),
+        after: external_exports.number().int().nonnegative().optional(),
+        limit: external_exports.number().int().positive().max(200).optional()
+      }
+    },
+    tailRunEvents
+  );
+  server.registerTool(
+    "graph_start_run",
+    {
+      description: "Call this directly when the user explicitly asks to execute the current draft. The chat request is human approval; this tool atomically records it and starts execution. It is the only start path because Dashboard has no approval/start button. Omit graphId to auto-pick newest draft. Do not ask for a second approval and do not replan.",
+      inputSchema: {
+        graphId: external_exports.string().optional(),
+        repositoryRoot: external_exports.string().optional()
+      }
+    },
+    startRun
+  );
+  server.registerTool(
     "graph_propose_amendment",
     {
       description: "Create a new validated graph version; running versions are never edited in place.",
@@ -142116,10 +143091,36 @@ function registerPlannerTools(server) {
     proposeAmendment
   );
   server.registerTool(
+    "graph_list_node_comments",
+    {
+      description: "List Dashboard comments left on graph nodes (human guidance for amendments).",
+      inputSchema: {
+        graphId: external_exports.string(),
+        nodeId: external_exports.string().optional()
+      }
+    },
+    listNodeComments
+  );
+  server.registerTool(
+    "graph_add_node_comment",
+    {
+      description: "Add a comment on a graph node from the host agent.",
+      inputSchema: {
+        graphId: external_exports.string(),
+        nodeId: external_exports.string(),
+        body: external_exports.string().min(1)
+      }
+    },
+    addNodeComment
+  );
+  server.registerTool(
     "graph_open_dashboard",
     {
-      description: "Open the local review dashboard without granting approval.",
-      inputSchema: { graphId: external_exports.string() }
+      description: "Ensure local graphd is healthy, then open the review dashboard without granting approval. Returns reachable=false if the Dashboard URL would connection-refuse.",
+      inputSchema: {
+        graphId: external_exports.string(),
+        runId: external_exports.string().optional()
+      }
     },
     openGraphDashboard
   );
@@ -142145,10 +143146,31 @@ async function validateSpec({ spec }) {
   );
 }
 async function publishDraft({ spec }) {
-  return textResult(
-    await callGraphd("/api/graphs/publish", {
+  const published = await callGraphd(
+    "/api/graphs/publish",
+    {
       method: "POST",
       body: JSON.stringify({ spec })
+    }
+  );
+  return textResult({
+    ...published,
+    dashboardStartAvailable: false,
+    nextAction: "Wait for an explicit Execute request in agent chat, then call graph_start_run directly. Never ask the user to click approval in Dashboard."
+  });
+}
+async function listGraphs() {
+  const graphs = await callGraphd("/api/graphs");
+  return textResult(
+    graphs.map(function summarizeGraph(graph) {
+      return {
+        graphId: graph.id,
+        status: graph.status,
+        version: graph.version,
+        createdAt: graph.created_at,
+        goal: graph.spec.goal,
+        repositoryRoot: graph.spec.repository.root
+      };
     })
   );
 }
@@ -142157,6 +143179,83 @@ async function getGraph({ graphId }) {
 }
 async function getRunStatus({ runId }) {
   return textResult(await callGraphd(`/api/runs/${runId}`));
+}
+async function tailRunEvents({
+  runId,
+  after = 0,
+  limit: limit2 = 50
+}) {
+  const [run, events2] = await Promise.all([
+    callGraphd(`/api/runs/${runId}`),
+    callGraphd(`/api/runs/${runId}/events?after=${after}`)
+  ]);
+  const sliced = events2.slice(0, limit2);
+  const lines = sliced.map(function formatEvent(event) {
+    const text2 = typeof event.payload?.text === "string" ? event.payload.text : typeof event.payload?.delta === "string" ? event.payload.delta : typeof event.payload?.message === "string" ? event.payload.message : typeof event.payload?.error === "string" ? event.payload.error : "";
+    const node3 = event.nodeId ? ` [${event.nodeId}]` : "";
+    return `#${event.sequence} ${event.type}${node3}${text2 ? `: ${String(text2).slice(0, 240)}` : ""}`;
+  });
+  const nextAfter = sliced.length > 0 ? Math.max(
+    ...sliced.map(function seq(event) {
+      return event.sequence;
+    })
+  ) : after;
+  return textResult({
+    runId,
+    status: run.status ?? "unknown",
+    nodeIndex: run.state?.nodeIndex ?? {},
+    after,
+    nextAfter,
+    count: sliced.length,
+    lines,
+    events: sliced
+  });
+}
+async function resolveStartGraphId(input2) {
+  if (input2.graphId) {
+    return input2.graphId;
+  }
+  const graphs = await callGraphd("/api/graphs");
+  const drafts = graphs.filter(function isDraft(graph) {
+    return graph.status === "draft";
+  });
+  const scoped = input2.repositoryRoot ? drafts.filter(function matchesRoot(graph) {
+    return graph.spec.repository.root === input2.repositoryRoot;
+  }) : drafts;
+  return scoped[0]?.id ?? null;
+}
+async function startRun(input2) {
+  const graphId = await resolveStartGraphId(input2);
+  if (!graphId) {
+    return textResult({
+      started: false,
+      error: "NO_STARTABLE_GRAPH",
+      message: "No draft graph found to start. Publish a graph first, or pass graphId explicitly."
+    });
+  }
+  const started = await callGraphd(`/api/graphs/${graphId}/approve`, {
+    method: "POST",
+    body: JSON.stringify({ actor: "host-agent" })
+  });
+  if (!started.runId) {
+    return textResult({
+      started: false,
+      error: started.error ?? "START_FAILED",
+      message: started.message
+    });
+  }
+  const dashboardUrl2 = `${getGraphdBaseUrl()}/?token=${encodeURIComponent(getSessionToken())}&graph=${encodeURIComponent(graphId)}&run=${encodeURIComponent(started.runId)}`;
+  const openResult = await openDashboard(dashboardUrl2);
+  return textResult({
+    started: true,
+    graphId,
+    runId: started.runId,
+    status: started.status ?? "running",
+    dashboardUrl: dashboardUrl2,
+    opened: openResult.opened,
+    method: openResult.method,
+    hint: "Poll graph_tail_run_events with this runId and stream notable lines into the chat for the user."
+  });
 }
 async function proposeAmendment({
   graphId,
@@ -142169,14 +143268,60 @@ async function proposeAmendment({
     })
   );
 }
-async function openGraphDashboard({
-  graphId
+async function listNodeComments({
+  graphId,
+  nodeId
 }) {
-  const dashboardUrl2 = `${getGraphdBaseUrl()}/?token=${encodeURIComponent(getSessionToken())}&graph=${encodeURIComponent(graphId)}`;
+  const query = nodeId ? `?nodeId=${encodeURIComponent(nodeId)}` : "";
+  return textResult(
+    await callGraphd(`/api/graphs/${graphId}/comments${query}`)
+  );
+}
+async function addNodeComment({
+  graphId,
+  nodeId,
+  body
+}) {
+  return textResult(
+    await callGraphd(`/api/graphs/${graphId}/comments`, {
+      method: "POST",
+      body: JSON.stringify({ nodeId, body, role: "system" })
+    })
+  );
+}
+async function openGraphDashboard({
+  graphId,
+  runId
+}) {
+  let daemon = await ensureDaemon();
+  let reachable = await probeDaemonHealth();
+  if (!reachable) {
+    daemon = await ensureDaemon({ forceRestart: true });
+    reachable = await probeDaemonHealth();
+  }
+  const params = new URLSearchParams({
+    token: getSessionToken(),
+    graph: graphId
+  });
+  if (runId) {
+    params.set("run", runId);
+  }
+  const dashboardUrl2 = `${getGraphdBaseUrl()}/?${params.toString()}`;
+  if (!reachable) {
+    return textResult({
+      dashboardUrl: dashboardUrl2,
+      opened: false,
+      reachable: false,
+      daemon: daemon.status,
+      error: `graphd is not reachable at ${getGraphdBaseUrl()}. Dashboard was not opened to avoid a connection-refused browser error.`
+    });
+  }
   const openResult = await openDashboard(dashboardUrl2);
   return textResult({
     dashboardUrl: dashboardUrl2,
     opened: openResult.opened,
+    reachable: true,
+    daemon: daemon.status,
     method: openResult.method,
     error: openResult.error
   });

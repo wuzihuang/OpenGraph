@@ -6,6 +6,7 @@ export type {
   ArtifactRecord,
   GraphListRecord,
   GraphVersionRecord,
+  NodeCommentRecord,
   PublishedGraph,
   RunRecord,
 } from "./types.ts";

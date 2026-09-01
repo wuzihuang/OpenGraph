@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import {
   GraphSpecV1,
   type GraphNode,
@@ -50,6 +52,73 @@ function reachesVerifier(
   return false;
 }
 
+function isFastLoopVerifier(node: GraphNode): boolean {
+  return node.kind === "verifier" && /(^fast_|_fast_|^fast$|fast_verifier)/.test(node.id);
+}
+
+function isMidLoopVerifier(node: GraphNode): boolean {
+  return node.kind === "verifier" && /(^mid_|_mid_|^mid$|mid_verifier)/.test(node.id);
+}
+
+function hasStrategicAnchor(nodes: readonly GraphNode[]): boolean {
+  return nodes.some(function isAnchor(node): boolean {
+    return node.kind === "human" || node.kind === "acceptance";
+  });
+}
+
+function lintGoalCharter(spec: GraphSpec, issues: LintIssue[]): void {
+  const charter = spec.goalCharter;
+  const layers: Array<{ key: keyof typeof charter; label: string }> = [
+    { key: "strategic", label: "Strategic" },
+    { key: "medium", label: "Medium" },
+    { key: "fast", label: "Fast" },
+  ];
+
+  for (const layer of layers) {
+    const value = charter[layer.key]?.trim() ?? "";
+    if (value.length < 8) {
+      issues.push({
+        code: "MISSING_GOAL_CHARTER",
+        severity: "error",
+        message: `goalCharter.${layer.key} (${layer.label}) must be at least 8 characters`,
+      });
+    }
+  }
+}
+
+function lintLoopBodies(spec: GraphSpec, issues: LintIssue[]): void {
+  if (spec.executionMode !== "graph" || spec.nodes.length <= 2) {
+    return;
+  }
+
+  if (!spec.nodes.some(isFastLoopVerifier)) {
+    issues.push({
+      code: "MISSING_FAST_LOOP",
+      severity: "error",
+      message:
+        "Graph mode requires a Fast loop verifier node (id should include fast, e.g. fast_verifier)",
+    });
+  }
+
+  if (!spec.nodes.some(isMidLoopVerifier)) {
+    issues.push({
+      code: "MISSING_MEDIUM_LOOP",
+      severity: "error",
+      message:
+        "Graph mode requires a Medium loop verifier node (id should include mid, e.g. mid_verifier)",
+    });
+  }
+
+  if (!hasStrategicAnchor(spec.nodes)) {
+    issues.push({
+      code: "MISSING_STRATEGIC_ANCHOR",
+      severity: "error",
+      message:
+        "Graph mode requires a Strategic anchor node (kind human or acceptance)",
+    });
+  }
+}
+
 export function lintGraphSpec(input: unknown): LintResult {
   const parsed = GraphSpecV1.safeParse(input);
   if (!parsed.success) {
@@ -73,6 +142,17 @@ export function lintGraphSpec(input: unknown): LintResult {
   const issues: LintIssue[] = [];
   const ids = new Set<string>();
   const nodes = new Map<string, GraphNode>();
+
+  if (!existsSync(join(spec.repository.root, ".git"))) {
+    issues.push({
+      code: "REPOSITORY_NOT_GIT",
+      severity: "error",
+      message: `repository.root must be a git repository (got ${spec.repository.root})`,
+    });
+  }
+
+  lintGoalCharter(spec, issues);
+  lintLoopBodies(spec, issues);
 
   for (const node of spec.nodes) {
     if (ids.has(node.id)) {

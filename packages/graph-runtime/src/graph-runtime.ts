@@ -112,6 +112,91 @@ export class GraphRuntime {
     spec: GraphSpec,
     runId = `run_${randomUUID()}`,
   ): Promise<string> {
+    const state = this.beginRun(
+      projectId,
+      graphId,
+      graphVersionId,
+      spec,
+      runId,
+    );
+    void this.execute(projectId, graphId, spec, state);
+    return runId;
+  }
+
+  /**
+   * Start a run and wait until it reaches a terminal status (or timeout).
+   * Used by shadow certification; production approve path stays fire-and-forget.
+   */
+  async startAndAwait(
+    projectId: string,
+    graphId: string,
+    graphVersionId: string,
+    spec: GraphSpec,
+    runId = `run_${randomUUID()}`,
+    timeoutMs = 90_000,
+  ): Promise<{
+    runId: string;
+    status: string;
+    state: RunState;
+    error?: string;
+  }> {
+    const state = this.beginRun(
+      projectId,
+      graphId,
+      graphVersionId,
+      spec,
+      runId,
+    );
+    let timedOut = false;
+    const timeoutTimer = setTimeout((): void => {
+      timedOut = true;
+      this.cancel(runId);
+    }, timeoutMs);
+
+    try {
+      await this.execute(projectId, graphId, spec, state);
+    } finally {
+      clearTimeout(timeoutTimer);
+    }
+
+    const row = this.store.getRun(runId);
+
+    if (!row) {
+      throw new Error("Run not found after shadow execution");
+    }
+
+    if (timedOut) {
+      return {
+        runId,
+        status: row.status,
+        state: row.state,
+        error: "SHADOW_TIMEOUT",
+      };
+    }
+
+    if (row.status === "completed") {
+      return {
+        runId,
+        status: row.status,
+        state: row.state,
+      };
+    }
+
+    return {
+      runId,
+      status: row.status,
+      state: row.state,
+      error: String(row.state.finalStatus),
+    };
+  }
+
+  private beginRun(
+    projectId: string,
+    graphId: string,
+    graphVersionId: string,
+    spec: GraphSpec,
+    runId: string,
+  ): RunState {
     compileGraphSpec(spec, async function createCompileContext() {
       return {};
     });
@@ -131,8 +216,7 @@ export class GraphRuntime {
       payload: { status: "running" },
     });
 
-    void this.execute(projectId, graphId, spec, state);
-    return runId;
+    return state;
   }
 
   async resume(

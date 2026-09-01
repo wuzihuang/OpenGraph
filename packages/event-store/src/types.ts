@@ -110,3 +110,12 @@ export interface ArtifactRecord {
   path: string;
   hash: string;
 }
+
+export interface NodeCommentRecord {
+  id: string;
+  graphId: string;
+  nodeId: string;
+  role: "user" | "system";
+  body: string;
+  createdAt: string;
+}

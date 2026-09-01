@@ -11,6 +11,7 @@ import {
 } from "../../graph-runtime/src/index.ts";
 import { registerAgentRepositoryRoutes } from "./agent-repository-routes.ts";
 import { registerAuth } from "./auth.ts";
+import { registerCommentRoutes } from "./comment-routes.ts";
 import { resolveProjectRoot } from "./context.ts";
 import { registerGraphRoutes } from "./graph-routes.ts";
 import { registerRunRoutes } from "./run-routes.ts";
@@ -128,6 +129,7 @@ export async function startDaemon(
   registerAuth(app, token);
   registerSystemRoutes(app, context);
   registerGraphRoutes(app, context);
+  registerCommentRoutes(app, context);
   registerRunRoutes(app, context);
   registerAgentRepositoryRoutes(app, context);
   registerWebSocketRoutes(app, context);

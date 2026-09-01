@@ -17,6 +17,11 @@ export const lintCodes = [
   "WIDTH_BUDGET_EXCEEDED",
   "INVALID_APPROVAL_BOUNDARY",
   "INVALID_RETRY_POLICY",
+  "REPOSITORY_NOT_GIT",
+  "MISSING_GOAL_CHARTER",
+  "MISSING_FAST_LOOP",
+  "MISSING_MEDIUM_LOOP",
+  "MISSING_STRATEGIC_ANCHOR",
 ] as const;
 
 export type LintCode = (typeof lintCodes)[number];

@@ -13,6 +13,6 @@ Kimi:         /skill:graph <goal>
 Hermes / OpenClaw / Gemini / Qwen: use the graph skill with your goal
 ```
 
-`./install-graph all` wires the Graph workflow skill, the graph-design doctrine skill, and the MCP launcher into every known planner host. Hosts that already load `~/.agents/skills` can use `./install-graph agents` plus their own MCP config pointing at `scripts/launch-graph`.
+`./install-graph all` wires the Graph skill (design doctrine + bounded planner loop) and the MCP launcher into every known planner host. Hosts that already load `~/.agents/skills` can use `./install-graph agents` plus their own MCP config pointing at `scripts/launch-graph`.
 
 The first invocation installs the plugin's local SQLite runtime dependency. Graph binds Dashboard to `127.0.0.1`, stores state under `~/.graph`, and preserves the human approval boundary.

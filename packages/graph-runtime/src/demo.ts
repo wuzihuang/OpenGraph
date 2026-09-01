@@ -46,6 +46,14 @@ export function createDemoSpec(
     version: "1.0",
     executionMode: "graph",
     goal,
+    goalCharter: {
+      strategic:
+        "Deliver a resilient sample feature without sacrificing auditability or human approval boundaries.",
+      medium:
+        "Integration survives adversarial review on diff and cross-module evidence, not only scoped unit tests.",
+      fast:
+        "Parallel workers complete in isolated worktrees with passing scoped tests and named artifacts.",
+    },
     acceptanceCriteria: [
       "Both parallel workers complete",
       "A failed verification retries in a fresh session",
@@ -159,13 +167,22 @@ export function createDemoSpec(
         },
       }),
       createDemoNode({
-        id: "fresh_verify",
-        title: "Fresh verification",
+        id: "fast_verifier",
+        title: "Fast loop verification",
         kind: "verifier",
         objective:
-          "Seek objective reasons to reject the integrated result using diff and test evidence only.",
+          "Reject the integrated result when scoped worker evidence is incomplete or tests were gamed.",
         inputs: ["integration.diff"],
-        outputs: [{ name: "verification.json", type: "json" }],
+        outputs: [{ name: "fast-verification.json", type: "json" }],
+      }),
+      createDemoNode({
+        id: "mid_verifier",
+        title: "Medium loop verification",
+        kind: "verifier",
+        objective:
+          "Kill a green Fast score when diff integrity, cross-module coupling, or rationale audits fail on different evidence.",
+        inputs: ["fast-verification.json", "integration.diff"],
+        outputs: [{ name: "mid-verification.json", type: "json" }],
       }),
       createDemoNode({
         id: "acceptance",
@@ -173,7 +190,7 @@ export function createDemoSpec(
         kind: "acceptance",
         objective:
           "Run the final acceptance suite and publish the complete execution report.",
-        inputs: ["verification.json"],
+        inputs: ["mid-verification.json"],
         outputs: [{ name: "run-report.json", type: "test_report" }],
         acceptanceChecks: [
           {
@@ -208,13 +225,18 @@ export function createDemoSpec(
       },
       {
         from: "integrate",
-        to: "fresh_verify",
+        to: "fast_verifier",
         artifacts: ["integration.diff"],
       },
       {
-        from: "fresh_verify",
+        from: "fast_verifier",
+        to: "mid_verifier",
+        artifacts: ["fast-verification.json", "integration.diff"],
+      },
+      {
+        from: "mid_verifier",
         to: "acceptance",
-        artifacts: ["verification.json"],
+        artifacts: ["mid-verification.json"],
       },
     ],
   };

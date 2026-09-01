@@ -27,7 +27,10 @@ export type GraphNode = Pick<
 
 export type GraphEdge = Pick<ContractGraphEdge, "from" | "to" | "artifacts">;
 
-export type GraphSpec = Pick<ContractGraphSpec, "goal" | "version"> & {
+export type GraphSpec = Pick<
+  ContractGraphSpec,
+  "goal" | "version" | "goalCharter"
+> & {
   repository?: Partial<ContractGraphSpec["repository"]>;
   policies: Pick<ContractGraphSpec["policies"], "maxParallel"> &
     Partial<Omit<ContractGraphSpec["policies"], "maxParallel">>;
@@ -80,6 +83,16 @@ export type CardData = {
   status: string;
   accent: string;
   outputs: string[];
+  streamText?: string;
+};
+
+export type NodeComment = {
+  id: string;
+  graphId: string;
+  nodeId: string;
+  role: "user" | "system";
+  body: string;
+  createdAt: string;
 };
 
 export type GraphPosition = {
@@ -88,5 +101,5 @@ export type GraphPosition = {
 };
 
 export type WorkspaceView = "graph" | "activity" | "agents" | "security";
-export type InspectorPanel = "configure" | "activity" | "evidence";
+export type InspectorPanel = "configure" | "comments" | "activity" | "evidence";
 export type AppMode = "review" | "run";

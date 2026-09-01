@@ -26,6 +26,7 @@ import type {
   GraphVersionRecord,
   GraphVersionRow,
   GraphVersionStatusRow,
+  NodeCommentRecord,
   PublishedGraph,
   RunRecord,
   RunRow,
@@ -224,6 +225,15 @@ export class EventStore {
     return row ? mapRunRow(row) : null;
   }
 
+  listRunsForGraph(graphId: string, limit = 20): RunRecord[] {
+    const rows = this.db
+      .prepare(
+        "SELECT * FROM runs WHERE graph_id=? ORDER BY created_at DESC LIMIT ?",
+      )
+      .all(graphId, limit) as RunRow[];
+    return rows.map(mapRunRow);
+  }
+
   resumableRuns(): RunRecord[] {
     const rows = this.db
       .prepare(
@@ -340,5 +350,74 @@ export class EventStore {
         new Date().toISOString(),
       );
     return { path, hash };
+  }
+
+  listNodeComments(graphId: string, nodeId?: string): NodeCommentRecord[] {
+    const rows = (
+      nodeId
+        ? (this.db
+            .prepare(
+              "SELECT id,graph_id,node_id,role,body,created_at FROM node_comments WHERE graph_id=? AND node_id=? ORDER BY created_at ASC",
+            )
+            .all(graphId, nodeId) as Array<{
+            id: string;
+            graph_id: string;
+            node_id: string;
+            role: "user" | "system";
+            body: string;
+            created_at: string;
+          }>)
+        : (this.db
+            .prepare(
+              "SELECT id,graph_id,node_id,role,body,created_at FROM node_comments WHERE graph_id=? ORDER BY created_at ASC",
+            )
+            .all(graphId) as Array<{
+            id: string;
+            graph_id: string;
+            node_id: string;
+            role: "user" | "system";
+            body: string;
+            created_at: string;
+          }>)
+    ).map(function mapComment(row) {
+      return {
+        id: row.id,
+        graphId: row.graph_id,
+        nodeId: row.node_id,
+        role: row.role,
+        body: row.body,
+        createdAt: row.created_at,
+      };
+    });
+    return rows;
+  }
+
+  addNodeComment(
+    graphId: string,
+    nodeId: string,
+    body: string,
+    role: "user" | "system" = "user",
+  ): NodeCommentRecord {
+    const comment: NodeCommentRecord = {
+      id: `comment_${randomUUID()}`,
+      graphId,
+      nodeId,
+      role,
+      body,
+      createdAt: new Date().toISOString(),
+    };
+    this.db
+      .prepare(
+        "INSERT INTO node_comments(id,graph_id,node_id,role,body,created_at) VALUES(?,?,?,?,?,?)",
+      )
+      .run(
+        comment.id,
+        comment.graphId,
+        comment.nodeId,
+        comment.role,
+        comment.body,
+        comment.createdAt,
+      );
+    return comment;
   }
 }

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import type { TaskEnvelope } from "../../contracts/src/index.ts";
 import type { NodeExecutionContext } from "./node-execution-types.ts";
 
@@ -57,19 +58,27 @@ export function writeOutputArtifacts(
   const artifactNames: string[] = [];
 
   for (const output of node.outputs) {
-    const content = createArtifactContent(
-      context,
-      envelope,
-      output.name,
-      attempt,
-      summary,
-      physicalPassed,
-    );
+    const diffArtifact = state.artifactIndex[`diff:${node.id}`];
+    const content =
+      output.type === "git_patch" && diffArtifact
+        ? readFileSync(diffArtifact.path, "utf8")
+        : JSON.stringify(
+            createArtifactContent(
+              context,
+              envelope,
+              output.name,
+              attempt,
+              summary,
+              physicalPassed,
+            ),
+            null,
+            2,
+          );
     const artifact = store.writeArtifact(
       state.runId,
       node.id,
       output.name,
-      JSON.stringify(content, null, 2),
+      content,
     );
 
     state.artifactIndex[output.name] = artifact;

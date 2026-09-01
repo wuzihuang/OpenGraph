@@ -43,6 +43,8 @@ export function InspectorConfigure(props: InspectorConfigureProps) {
         <label htmlFor="objective">Prompt / objective</label>
         <textarea
           id="objective"
+          className="field"
+          rows={6}
           value={active.objective}
           onChange={function changeObjective(event) {
             onUpdateActive({ objective: event.target.value });

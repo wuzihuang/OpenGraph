@@ -89,7 +89,8 @@ export function OverviewPage({
               <WifiOff size={18} />
               <strong>No run activity yet</strong>
               <span>
-                Approve the graph to start a run. Events will appear here live.
+                Start a run from your coding agent (graph_start_run). Events
+                will appear here live.
               </span>
             </div>
           )}

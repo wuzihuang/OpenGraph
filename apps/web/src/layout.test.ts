@@ -17,7 +17,7 @@ const node = (id: string) => ({
 });
 
 describe("layoutGraphNodes", () => {
-  it("places dependency layers left-to-right and parallel nodes in separate lanes", () => {
+  it("places dependency layers top-to-bottom in a diamond spread", () => {
     const nodes = [
       "inventory",
       "correctness",
@@ -35,10 +35,10 @@ describe("layoutGraphNodes", () => {
       { from: "verify", to: "human", artifacts: [] },
     ];
     const positions = layoutGraphNodes(nodes, edges);
-    expect(positions.inventory!.x).toBeLessThan(positions.correctness!.x);
-    expect(positions.correctness!.x).toBe(positions.security!.x);
-    expect(positions.correctness!.y).not.toBe(positions.security!.y);
-    expect(positions.synthesis!.x).toBeGreaterThan(positions.security!.x);
+    expect(positions.inventory!.y).toBeLessThan(positions.correctness!.y);
+    expect(positions.correctness!.y).toBe(positions.security!.y);
+    expect(positions.correctness!.x).not.toBe(positions.security!.x);
+    expect(positions.synthesis!.y).toBeGreaterThan(positions.security!.y);
     expect(
       new Set(Object.values(positions).map(({ x, y }) => `${x}:${y}`)).size,
     ).toBe(nodes.length);
@@ -51,5 +51,30 @@ describe("layoutGraphNodes", () => {
       new Set(Object.values(positions).map(({ x, y }) => `${x}:${y}`)).size,
     ).toBe(3);
     expect(Object.values(positions)).not.toContainEqual({ x: 0, y: 0 });
+  });
+
+  it("spreads supervised loops around a central governance area", () => {
+    const nodes = [
+      "fast_worker",
+      "fast_verifier",
+      "mid_audit",
+      "mid_verifier",
+      "guard_integrity",
+      "strat_acceptance",
+    ].map(node);
+    const edges = [
+      { from: "fast_worker", to: "fast_verifier", artifacts: [] },
+      { from: "fast_verifier", to: "mid_audit", artifacts: [] },
+      { from: "mid_audit", to: "mid_verifier", artifacts: [] },
+      { from: "mid_verifier", to: "guard_integrity", artifacts: [] },
+      { from: "guard_integrity", to: "strat_acceptance", artifacts: [] },
+    ];
+    const positions = layoutGraphNodes(nodes, edges);
+
+    expect(positions.fast_worker!.y).toBeLessThan(positions.mid_audit!.y);
+    expect(positions.mid_audit!.x).toBeLessThan(positions.guard_integrity!.x);
+    expect(positions.strat_acceptance!.x).toBeGreaterThan(
+      positions.guard_integrity!.x,
+    );
   });
 });

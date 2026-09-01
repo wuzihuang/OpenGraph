@@ -4,6 +4,8 @@ import { lintGraphSpec } from "../../graph-compiler/src/index.ts";
 import {
   createDemoSpec,
   createFlappyBirdSpec,
+  runShadowCertification,
+  type ShadowCertification,
 } from "../../graph-runtime/src/index.ts";
 import {
   demoRepositoryRoot,
@@ -30,6 +32,31 @@ function riskSummary(spec: GraphSpec): {
     network: spec.policies.networkPolicy,
     maxParallel: spec.policies.maxParallel,
   };
+}
+
+async function certifyOrReject(spec: GraphSpec): Promise<
+  | { ok: true; shadowCertification: ShadowCertification }
+  | {
+      ok: false;
+      response: {
+        error: "SHADOW_FAILED";
+        shadowCertification: ShadowCertification;
+      };
+    }
+> {
+  const shadowCertification = await runShadowCertification(spec);
+
+  if (!shadowCertification.ok) {
+    return {
+      ok: false,
+      response: {
+        error: "SHADOW_FAILED",
+        shadowCertification,
+      },
+    };
+  }
+
+  return { ok: true, shadowCertification };
 }
 
 export function registerGraphRoutes(
@@ -72,6 +99,11 @@ export function registerGraphRoutes(
       );
     }
 
+    const certified = await certifyOrReject(spec);
+    if (!certified.ok) {
+      return certified.response;
+    }
+
     const projectId = context.store.createProject(root);
     const published = context.store.publishGraph(projectId, spec);
 
@@ -90,6 +122,7 @@ export function registerGraphRoutes(
         ...riskSummary(spec),
         approval: "required",
       },
+      shadowCertification: certified.shadowCertification,
     };
   });
 
@@ -107,6 +140,11 @@ export function registerGraphRoutes(
           })
           .join(",")}`,
       );
+    }
+
+    const certified = await certifyOrReject(spec);
+    if (!certified.ok) {
+      return certified.response;
     }
 
     const projectId = context.store.createProject(root);
@@ -129,6 +167,7 @@ export function registerGraphRoutes(
         ...riskSummary(spec),
         approval: "required",
       },
+      shadowCertification: certified.shadowCertification,
     };
   });
 
@@ -142,6 +181,14 @@ export function registerGraphRoutes(
         return { error: "VALIDATION_FAILED", validation };
       }
 
+      const certified = await certifyOrReject(spec);
+      if (!certified.ok) {
+        return {
+          ...certified.response,
+          validation,
+        };
+      }
+
       const projectId =
         request.body.projectId ??
         context.store.createProject(spec.repository.root);
@@ -153,6 +200,7 @@ export function registerGraphRoutes(
         dashboardUrl: dashboardUrl(context, published.graphId),
         validationSummary: validation,
         riskSummary: riskSummary(spec),
+        shadowCertification: certified.shadowCertification,
       };
     },
   );
@@ -167,9 +215,41 @@ export function registerGraphRoutes(
         return { error: "VALIDATION_FAILED", validation };
       }
 
+      const certified = await certifyOrReject(spec);
+      if (!certified.ok) {
+        return {
+          ...certified.response,
+          validation,
+        };
+      }
+
       return {
         ...context.store.amendGraph(request.params.id, spec),
         validation,
+        shadowCertification: certified.shadowCertification,
+      };
+    },
+  );
+
+  app.get<{ Params: IdParams }>(
+    "/api/graphs/:id/runs",
+    async function listGraphRuns(request) {
+      const graph = context.store.getGraph(request.params.id);
+      if (!graph) {
+        return { error: "NOT_FOUND" };
+      }
+      return {
+        runs: context.store.listRunsForGraph(request.params.id).map(
+          function summarizeRun(run) {
+            return {
+              id: run.id,
+              status: run.status,
+              created_at: run.created_at,
+              updated_at: run.updated_at,
+              nodeIndex: run.state.nodeIndex ?? {},
+            };
+          },
+        ),
       };
     },
   );
@@ -188,7 +268,7 @@ export function registerGraphRoutes(
     },
   );
 
-  app.post<{ Params: IdParams }>(
+  app.post<{ Params: IdParams; Body?: { actor?: string } }>(
     "/api/graphs/:id/approve",
     async function approveGraph(request, reply) {
       const graphId = request.params.id;
@@ -199,7 +279,11 @@ export function registerGraphRoutes(
       }
 
       try {
-        context.store.approve(graph.id, "dashboard-human");
+        const actor =
+          typeof request.body?.actor === "string" && request.body.actor.trim()
+            ? request.body.actor.trim()
+            : "host-agent";
+        context.store.approve(graph.id, actor);
         const projectId = context.store.getProjectIdForGraph(graphId);
         const runId = await context.runtime.start(
           projectId,

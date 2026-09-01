@@ -1,18 +1,34 @@
 ---
-description: Plan a repository goal as a validated Graph draft and open the local Dashboard
-argument-hint: "<goal>"
+description: Plan, revise, or execute a graph — infer intent from context, not fixed phrases
+argument-hint: "<goal or follow-up>"
 ---
 
-Treat `$ARGUMENTS` as the goal. If no goal was supplied, ask for one concise goal and stop.
+## Intent (first — your judgment)
 
-1. Call `graph_discover_environment`, then call `graph_inspect_repository` for the current repository root.
-2. Read `plannerBrief` (MCP + skills decision packet), then `availableCapabilities` / `agentsByCapability` / `plannerNotes`. Infer a practical `GraphSpecV1` and assign agents per node. Apply the **graph-design** skill (decomposition, artifact edges, topology patterns, agent capability matching, and pre-validate rubric). Ask only when a missing choice would materially change the graph.
-3. Make dependencies explicit with named artifacts. Isolate parallel writers, bound retries, require fresh read-only verification for code-writing nodes, and keep nested subagents disabled by default.
-4. Design supervision, not only sequencing: every writing node must reach an independent `verifier` node; set `policies.acceptanceFrozen: true`; keep acceptance checks frozen for workers. Prefer execute / supervise / accept / human-anchor roles over a single self-scoring loop.
-5. Call `graph_validate_spec`. Fix every validation error and validate again after each edit.
-6. Call `graph_publish_draft` after validation succeeds.
-7. Immediately call `graph_open_dashboard` with the published graph ID.
-8. If the tool returns `dashboardUrl`, also open that URL with the host URL opener when available (in Cursor: `open_resource`). Never claim the Dashboard is open unless a tool reported success or the host opener confirmed it.
-9. Tell the user the Draft is ready for review and include the `dashboardUrl` as a clickable link. Keep the response short.
+Read the **conversation**, not a keyword list. Use **`graph_list_graphs`** if you need ground truth.
 
-Stop after opening the Draft. Never approve or start a graph on the user's behalf.
+| Intent                                                    | Action                                                                             |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Execute** — user wants to run the published Draft as-is | **`graph_start_run`** → **`graph_tail_run_events`**. No replan.                    |
+| **Revise** — user wants to change the current graph       | Comments → **`graph_propose_amendment`** (or re-charter if strategic goals shift). |
+| **Plan** — new work / no relevant Draft                   | Full planner loop below.                                                           |
+
+Short follow-ups after Publish usually mean **Execute**. Ask once only if truly ambiguous.
+
+The Dashboard has no approval button. An explicit Execute request in this chat
+is the human approval; call `graph_start_run` directly in the same turn. If that
+tool is missing, report a stale plugin/session and ask for a reload — never send
+the user to click the Dashboard.
+
+---
+
+When **Plan** intent: treat `$ARGUMENTS` as a seed goal. Follow the **graph** skill.
+
+1. **Sense (once):** `graph_discover_environment`, then `graph_inspect_repository`. Read `plannerBrief` first.
+2. **Goal Charter (mandatory):** Confirm Strategic / Medium / Fast with the human before validate/publish.
+3. **Propose:** `GraphSpecV1` with `goalCharter` + three loop bodies (fast / mid / strat verifiers).
+4. **Critique → Validate** (max 3 rounds).
+5. **Publish:** `graph_publish_draft`, then `graph_open_dashboard` (review only).
+6. Stop after Draft until user intent is **Execute** or **Revise**.
+
+Never claim a run started unless `graph_start_run` returned `started: true`.

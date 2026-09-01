@@ -72,14 +72,21 @@ export async function collectWorktreeEvidence(
     return true;
   }
 
-  const changedFiles = await manager.changedFiles(worktree.path);
+  const changedFiles = await manager.changedFiles(
+    worktree.path,
+    context.spec.repository.baseRef,
+  );
   const scope = manager.verifyWriteGlobs(
     changedFiles,
     node.workspace.writeGlobs,
   );
   const diffPath = join(store.root, state.runId, "diffs", `${node.id}.patch`);
 
-  await manager.collectDiff(worktree.path, diffPath);
+  await manager.collectDiff(
+    worktree.path,
+    diffPath,
+    context.spec.repository.baseRef,
+  );
 
   const diffArtifact = store.writeArtifact(
     state.runId,

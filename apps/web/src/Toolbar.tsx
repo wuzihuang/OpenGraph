@@ -1,4 +1,4 @@
-import { Check, Pause, Play, Search, Square, X } from "lucide-react";
+import { Search } from "lucide-react";
 import type { AppMode, GraphNode, GraphSpec } from "./types.ts";
 
 type ToolbarProps = {
@@ -8,15 +8,11 @@ type ToolbarProps = {
   runStatus: string;
   validationIssueCount: number;
   errorCount: number;
-  approving: boolean;
   searchOpen: boolean;
   searchQuery: string;
   searchResults: GraphNode[];
-  onModeChange: (mode: AppMode) => void;
-  onStartOrShowRun: () => void;
-  onApprove: () => void;
-  onReject: () => void;
-  onRunAction: (action: string) => void;
+  onShowReview: () => void;
+  onShowRun: () => void;
   onSearchOpenChange: (open: boolean) => void;
   onSearchQueryChange: (query: string) => void;
   onSelectNode: (id: string) => void;
@@ -30,21 +26,15 @@ export function Toolbar(props: ToolbarProps) {
     runStatus,
     validationIssueCount,
     errorCount,
-    approving,
     searchOpen,
     searchQuery,
     searchResults,
-    onModeChange,
-    onStartOrShowRun,
-    onApprove,
-    onReject,
-    onRunAction,
+    onShowReview,
+    onShowRun,
     onSearchOpenChange,
     onSearchQueryChange,
     onSelectNode,
   } = props;
-  const runUnavailable = !runId;
-  const runTerminal = ["completed", "failed", "cancelled"].includes(runStatus);
 
   return (
     <header className="topbar">
@@ -62,26 +52,29 @@ export function Toolbar(props: ToolbarProps) {
       <nav className="mode-switch">
         <button
           className={mode === "review" ? "active" : ""}
-          onClick={function showReview() {
-            onModeChange("review");
-          }}
+          onClick={onShowReview}
         >
           Review
         </button>
         <button
           className={mode === "run" ? "active" : ""}
-          onClick={onStartOrShowRun}
-          disabled={approving || errorCount > 0}
-          title={runUnavailable ? "Approve and start a run" : undefined}
+          onClick={onShowRun}
+          title={
+            runId
+              ? "Show live run dynamics"
+              : "Attach the latest run for this graph, if any"
+          }
         >
-          {approving ? "Starting…" : "Run"}
+          Live
         </button>
       </nav>
       <div className="top-actions">
         <span className={`validation ${errorCount ? "has-errors" : ""}`}>
-          {errorCount ? <X size={12} /> : <Check size={12} />} {errorCount}{" "}
-          errors · {validationIssueCount - errorCount} warnings
+          {errorCount} errors · {validationIssueCount - errorCount} warnings
         </span>
+        {mode === "run" && (
+          <span className={`run-pill ${runStatus}`}>{runStatus}</span>
+        )}
         <div className="search-wrap">
           <button
             className={`icon-button ${searchOpen ? "active" : ""}`}
@@ -131,52 +124,6 @@ export function Toolbar(props: ToolbarProps) {
             </div>
           )}
         </div>
-        {mode === "review" ? (
-          <>
-            <button className="reject" onClick={onReject} disabled={approving}>
-              Reject
-            </button>
-            <button
-              className="approve"
-              onClick={onApprove}
-              disabled={errorCount > 0 || approving}
-              aria-busy={approving}
-            >
-              <Play size={14} />
-              {approving ? "Starting…" : "Approve & run"}
-            </button>
-          </>
-        ) : (
-          <>
-            <span className={`run-pill ${runStatus}`}>{runStatus}</span>
-            <button
-              className="icon-button"
-              disabled={runUnavailable || runTerminal}
-              title={runUnavailable ? "No active run" : undefined}
-              onClick={function pauseOrResume() {
-                onRunAction(runStatus === "paused" ? "resume" : "pause");
-              }}
-              aria-label={runStatus === "paused" ? "Resume" : "Pause"}
-            >
-              {runStatus === "paused" ? (
-                <Play size={14} />
-              ) : (
-                <Pause size={14} />
-              )}
-            </button>
-            <button
-              className="cancel"
-              disabled={runUnavailable || runTerminal}
-              title={runUnavailable ? "No active run" : undefined}
-              onClick={function cancelRun() {
-                onRunAction("cancel");
-              }}
-            >
-              <Square size={12} />
-              Cancel
-            </button>
-          </>
-        )}
       </div>
     </header>
   );

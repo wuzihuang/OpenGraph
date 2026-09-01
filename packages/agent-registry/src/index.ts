@@ -229,6 +229,9 @@ function buildPlannerNotes(agents: AgentInstallation[]): string[] {
   const withSkills = usable.filter((agent) => agent.skills.length > 0);
   const notes = [
     "Startup: read plannerBrief first — it is the condensed MCP+skills packet for node→agent decisions.",
+    "Before proposing a graph: confirm a Goal Charter with the human — Strategic / Medium / Fast goals that mutually constrain each other, then write them to spec.goalCharter.",
+    "Draft three loop bodies (fast_worker+fast_verifier, mid_verifier with different evidence, strat human/acceptance). Not a single self-scoring KPI loop.",
+    "Dashboard is display-only. Infer user intent: Execute → graph_start_run; Revise → graph_propose_amendment; Plan → Goal Charter then publish. Do not match fixed trigger phrases.",
     "Prefer agentSelector.requiredCapabilities using availableCapabilities tags; avoid embedding raw MCP tool schemas or full skill bodies in node objectives.",
     "Match domain needs (browser, github, sentry, …) to agentsByCapability; fall back to mcp:<server> or skill:<name> tags when needed.",
     "MCP inventory is name-only; skills are name+short description only. Treat both as planning hints; runtime may still lack auth.",

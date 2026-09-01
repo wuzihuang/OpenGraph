@@ -7,7 +7,6 @@ import type {
   GraphSpec,
   InspectorPanel,
   ValidationResult,
-  WorkspaceView,
 } from "./types.ts";
 
 const validValidation: ValidationResult = { valid: true, issues: [] };
@@ -36,22 +35,29 @@ function findActiveNode(
   );
 }
 
+function replaceRunInUrl(token: string, graphId: string, runId: string): void {
+  history.replaceState(
+    null,
+    "",
+    `?token=${encodeURIComponent(token)}&graph=${encodeURIComponent(graphId)}&run=${encodeURIComponent(runId)}`,
+  );
+}
+
 export function useDashboardController() {
   const [params] = useState(readDashboardParams);
   const [spec, setSpec] = useState<GraphSpec>(fallbackSpec);
-  const [graphId, setGraphId] = useState<string | null>(params.graphId);
+  const graphId = params.graphId;
   const [runId, setRunId] = useState<string | null>(params.runId);
   const [mode, setMode] = useState<AppMode>(params.runId ? "run" : "review");
   const [selected, setSelected] = useState("implement_runtime");
   const [validation, setValidation] =
     useState<ValidationResult>(validValidation);
-  const [panel, setPanel] = useState<InspectorPanel>("configure");
-  const [workspaceView, setWorkspaceView] = useState<WorkspaceView>("graph");
-  const [inspectorOpen, setInspectorOpen] = useState(true);
+  const [panel, setPanel] = useState<InspectorPanel>("comments");
+  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [passportOpen, setPassportOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
-  const [approving, setApproving] = useState(false);
   const api = useGraphApi(params.token);
   const runEvents = useRunEvents(runId, params.token, api.headers);
 
@@ -63,6 +69,9 @@ export function useDashboardController() {
         setSpec(graph);
         const result = await api.validateGraph(graph);
         setValidation(result ?? validValidation);
+        if (graph.nodes[0]?.id) {
+          setSelected(graph.nodes[0].id);
+        }
       });
     },
     [api.loadGraph, api.validateGraph, graphId],
@@ -87,63 +96,41 @@ export function useDashboardController() {
     setValidation(result ?? validValidation);
   }
 
-  async function approve(): Promise<void> {
-    if (approving) return;
-    if (
-      validation.issues.some(function isError(issue) {
-        return issue.severity === "error";
-      })
-    ) {
-      setNotice("Fix validation errors before starting");
+  async function showRun(): Promise<void> {
+    if (!graphId) {
+      setNotice("Open a published graph before switching to Live");
       return;
     }
-    setApproving(true);
-    try {
-      let activeGraphId = graphId;
-      if (!activeGraphId) {
-        const created = await api.createDemoGraph();
-        if (!created.graphId) throw new Error("Demo graph missing id");
-        activeGraphId = created.graphId;
-        setGraphId(activeGraphId);
-        const loaded = await api.loadGraph(activeGraphId);
-        if (loaded) setSpec(loaded);
+
+    let activeRunId = runId;
+    if (!activeRunId) {
+      const latest = await api.latestRunForGraph(graphId);
+      if (!latest) {
+        setNotice("No run yet — start execution from your coding agent");
+        return;
       }
-      const data = await api.approveGraph(activeGraphId);
-      if (!data.runId) throw new Error("Approval failed");
+      activeRunId = latest.id;
       runEvents.resetEvents();
-      setRunId(data.runId);
-      setMode("run");
-      runEvents.setRunStatus("running");
-      setWorkspaceView("graph");
-      setPanel("activity");
-      setNotice("Run started");
-      history.replaceState(
-        null,
-        "",
-        `?token=${encodeURIComponent(params.token)}&graph=${activeGraphId}&run=${data.runId}`,
-      );
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Could not start run");
-    } finally {
-      setApproving(false);
+      setRunId(activeRunId);
+      runEvents.setRunStatus(latest.status);
+      replaceRunInUrl(params.token, graphId, activeRunId);
     }
+
+    setMode("run");
+    setPanel("activity");
+    setInspectorOpen(true);
+    setNotice(`Live · ${activeRunId.slice(-10)} · ${runEvents.runStatus}`);
   }
 
-  async function startOrShowRun(): Promise<void> {
-    if (runId) {
-      setMode("run");
-      return;
-    }
-    await approve();
-  }
-
-  async function reject(): Promise<void> {
-    if (graphId) await api.rejectGraph(graphId);
-    runEvents.setRunStatus("rejected");
+  function showReview(): void {
+    setMode("review");
   }
 
   async function saveAmendment(): Promise<void> {
-    if (!graphId || !validation.valid) return;
+    if (!graphId || !validation.valid) {
+      setNotice("Fix validation errors before saving");
+      return;
+    }
     try {
       const saved = await api.amendGraph(graphId, spec);
       if (!saved) throw new Error("Amendment failed");
@@ -155,24 +142,21 @@ export function useDashboardController() {
     }
   }
 
-  async function performRunAction(action: string): Promise<void> {
-    if (!runId) return;
-    await api.runAction(runId, action);
-    runEvents.setRunStatus(
-      action === "cancel"
-        ? "cancelled"
-        : action === "pause"
-          ? "paused"
-          : "running",
-    );
-  }
-
   function selectNode(id: string): void {
     setSelected(id);
-    setWorkspaceView("graph");
-    setInspectorOpen(true);
+    setPassportOpen(true);
     setSearchOpen(false);
     setSearchQuery("");
+  }
+
+  function closePassport(): void {
+    setPassportOpen(false);
+  }
+
+  function openInspectorPanel(next: InspectorPanel): void {
+    setPanel(next);
+    setInspectorOpen(true);
+    setPassportOpen(true);
   }
 
   function updateActive(change: Partial<GraphNode>): void {
@@ -184,19 +168,8 @@ export function useDashboardController() {
     void validate({ ...spec, nodes });
   }
 
-  async function reassignActiveNode(): Promise<void> {
-    const active = findActiveNode(spec, selected);
-    if (!runId || !active) return;
-    await api.reassignNode(runId, active.id);
-  }
-
-  async function retryActiveNode(): Promise<void> {
-    const active = findActiveNode(spec, selected);
-    if (!runId || !active) return;
-    await api.retryNode(runId, active.id);
-  }
-
   return {
+    token: params.token,
     spec,
     graphId,
     runId,
@@ -204,29 +177,24 @@ export function useDashboardController() {
     selected,
     validation,
     panel,
-    workspaceView,
     inspectorOpen,
+    passportOpen,
     searchOpen,
     searchQuery,
     notice,
-    approving,
     events: runEvents.events,
     statuses: runEvents.statuses,
     runStatus: runEvents.runStatus,
-    setMode,
     setPanel,
-    setWorkspaceView,
     setInspectorOpen,
     setSearchOpen,
     setSearchQuery,
-    approve,
-    startOrShowRun,
-    reject,
+    showReview,
+    showRun,
     saveAmendment,
-    performRunAction,
     selectNode,
+    closePassport,
+    openInspectorPanel,
     updateActive,
-    reassignActiveNode,
-    retryActiveNode,
   };
 }

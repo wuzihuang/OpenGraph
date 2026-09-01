@@ -43,18 +43,32 @@ function resolveClaudeBinary(): string {
 }
 
 function buildPrompt(envelope: TaskEnvelope): string {
+  const writable = envelope.writeGlobs.length > 0;
   const outputs = envelope.outputContract
     .map(function formatOutput(item) {
-      return `- ${item.name} (${item.type})`;
+      return item.type === "git_patch"
+        ? `- ${item.name} (${item.type}; runtime captures this from source changes — do not create it manually)`
+        : `- ${item.name} (${item.type}; logical artifact recorded from your final result)`;
     })
     .join("\n");
   const writes = envelope.writeGlobs.join(", ") || "(none)";
   const reads = envelope.readGlobs.join(", ") || "(none)";
+  const inputs =
+    envelope.inputArtifactPaths.length > 0
+      ? envelope.inputArtifactPaths
+          .map(function formatInput(path) {
+            return `- ${path}`;
+          })
+          .join("\n")
+      : "- (none)";
   const acceptance = envelope.acceptanceCommands.length
     ? envelope.acceptanceCommands
         .map((command) => `- \`${command}\``)
         .join("\n")
     : "- (none)";
+  const executionInstruction = writable
+    ? "Implement the objective by editing only files allowed by the write globs."
+    : "Analyze the objective without modifying or creating any workspace files. Required outputs are logical artifacts; the runtime records your final summary.";
 
   return [
     `You are executing OpenGraph node \`${envelope.nodeId}\` (attempt ${envelope.attempt}).`,
@@ -68,15 +82,21 @@ function buildPrompt(envelope: TaskEnvelope): string {
     `- Write globs: ${writes}`,
     `- Prohibited: ${envelope.prohibitedOperations.join(", ")}`,
     "",
+    "## Input artifacts",
+    inputs,
+    "Read and use every listed input artifact before producing the result.",
+    "",
     "## Required outputs",
     outputs || "- (runtime will record a summary artifact)",
     "",
     "## Acceptance commands that must pass afterwards",
     acceptance,
     "",
-    "Implement the objective by editing files in this workspace.",
+    executionInstruction,
     "Do not push, deploy, or install unnecessary packages.",
-    "When finished, print a short summary of what changed.",
+    writable
+      ? "When finished, print a short summary of what changed."
+      : "When finished, print a concise evidence-based result.",
   ].join("\n");
 }
 
@@ -143,6 +163,10 @@ export class ClaudeCodeAgent {
 
     const prompt = buildPrompt(envelope);
     const binary = resolveClaudeBinary();
+    const allowedTools =
+      envelope.writeGlobs.length > 0
+        ? "Read,Write,Edit,Bash,Glob,Grep"
+        : "Read,Bash,Glob,Grep";
     emit({
       kind: "tool_started",
       payload: { tool: "claude", title: `${binary} -p` },
@@ -155,7 +179,7 @@ export class ClaudeCodeAgent {
           "-p",
           "--dangerously-skip-permissions",
           "--allowedTools",
-          "Read,Write,Edit,Bash,Glob,Grep",
+          allowedTools,
           "--output-format",
           "text",
           prompt,

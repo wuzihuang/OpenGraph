@@ -150,6 +150,20 @@ export function useGraphApi(token: string) {
     [headers],
   );
 
+  const latestRunForGraph = useCallback(
+    async function latestRunForGraph(
+      graphId: string,
+    ): Promise<{ id: string; status: string } | null> {
+      const response = await fetch(`/api/graphs/${graphId}/runs`, { headers });
+      if (!response.ok) return null;
+      const body = (await response.json()) as {
+        runs?: Array<{ id: string; status: string }>;
+      };
+      return body.runs?.[0] ?? null;
+    },
+    [headers],
+  );
+
   return {
     headers,
     loadGraph,
@@ -161,6 +175,7 @@ export function useGraphApi(token: string) {
     runAction,
     reassignNode,
     retryNode,
+    latestRunForGraph,
   };
 }
 
@@ -245,8 +260,15 @@ export function useRunEvents(
             for (const event of polledEvents) ingest(event);
           }
           if (runResponse.ok) {
-            const row = (await runResponse.json()) as RunResponse;
+            const row = (await runResponse.json()) as RunResponse & {
+              state?: { nodeIndex?: Record<string, string> };
+            };
             setRunStatus(row.status);
+            if (row.state?.nodeIndex) {
+              setStatuses(function mergeNodeIndex(current) {
+                return { ...row.state!.nodeIndex!, ...current };
+              });
+            }
           }
         } catch {
           // The websocket reconnect loop remains the primary recovery path.

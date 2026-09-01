@@ -2,6 +2,14 @@ import type { GraphSpec } from "./types.ts";
 
 export const fallbackSpec: GraphSpec = {
   goal: "Ship Graph Engineer vertical slice",
+  goalCharter: {
+    strategic:
+      "Ship the vertical slice without sacrificing human approval, auditability, or frozen acceptance.",
+    medium:
+      "Integration survives adversarial review on cross-module diff evidence, not only scoped unit tests.",
+    fast:
+      "Parallel runtime and dashboard workers complete with passing scoped tests and named artifacts.",
+  },
   version: "1.0",
   policies: { maxParallel: 2 },
   nodes: [
@@ -92,16 +100,49 @@ export const fallbackSpec: GraphSpec = {
       verifierPolicy: { required: true, freshSession: true, readonly: true },
     },
     {
-      id: "fresh_verify",
-      title: "Fresh verification",
+      id: "fast_verifier",
+      title: "Fast loop verification",
       kind: "verifier",
-      objective: "Reject results without sufficient evidence.",
+      objective: "Reject results without sufficient Fast-loop evidence.",
       agentSelector: { preferredAgents: ["Fresh session"] },
       workspace: { mode: "readonly", readGlobs: ["**"], writeGlobs: [] },
       inputs: ["integration.diff"],
-      outputs: [{ name: "verification.json", type: "json" }],
+      outputs: [{ name: "fast-verification.json", type: "json" }],
       acceptanceChecks: [
         { type: "artifact", description: "Verified", frozen: true },
+      ],
+      retryPolicy: { maxAttempts: 1 },
+      timeoutSeconds: 60,
+      verifierPolicy: { required: false, freshSession: true, readonly: true },
+    },
+    {
+      id: "mid_verifier",
+      title: "Medium loop verification",
+      kind: "verifier",
+      objective:
+        "Kill a green Fast score when cross-module integrity or rationale audits fail.",
+      agentSelector: { preferredAgents: ["Fresh session"] },
+      workspace: { mode: "readonly", readGlobs: ["**"], writeGlobs: [] },
+      inputs: ["fast-verification.json", "integration.diff"],
+      outputs: [{ name: "mid-verification.json", type: "json" }],
+      acceptanceChecks: [
+        { type: "artifact", description: "Mid verified", frozen: true },
+      ],
+      retryPolicy: { maxAttempts: 1 },
+      timeoutSeconds: 60,
+      verifierPolicy: { required: false, freshSession: true, readonly: true },
+    },
+    {
+      id: "acceptance",
+      title: "Strategic acceptance",
+      kind: "acceptance",
+      objective: "Record final acceptance after Medium and Fast loops pass.",
+      agentSelector: { preferredAgents: ["Human"] },
+      workspace: { mode: "readonly", readGlobs: ["**"], writeGlobs: [] },
+      inputs: ["mid-verification.json"],
+      outputs: [{ name: "run-report.json", type: "test_report" }],
+      acceptanceChecks: [
+        { type: "artifact", description: "Accepted", frozen: true },
       ],
       retryPolicy: { maxAttempts: 1 },
       timeoutSeconds: 60,
@@ -129,6 +170,16 @@ export const fallbackSpec: GraphSpec = {
       to: "integrate",
       artifacts: ["dashboard.patch"],
     },
-    { from: "integrate", to: "fresh_verify", artifacts: ["integration.diff"] },
+    { from: "integrate", to: "fast_verifier", artifacts: ["integration.diff"] },
+    {
+      from: "fast_verifier",
+      to: "mid_verifier",
+      artifacts: ["fast-verification.json", "integration.diff"],
+    },
+    {
+      from: "mid_verifier",
+      to: "acceptance",
+      artifacts: ["mid-verification.json"],
+    },
   ],
 };

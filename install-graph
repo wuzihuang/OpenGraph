@@ -5,7 +5,6 @@ repo_root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 plugin_root=$repo_root/plugins/graph
 skills_root=$plugin_root/skills
 skill_src=$skills_root/graph
-design_skill_src=$skills_root/graph-design
 launch=$plugin_root/scripts/launch-graph
 target=${1:-all}
 node_bin=${NODE:-node}
@@ -46,10 +45,26 @@ install_one_skill() {
   say "Skill installed → $dest"
 }
 
+remove_stale_graph_skill() {
+  base=$1
+  if [ -d "$base/graph" ]; then
+    rm -rf "$base/graph" 2>/dev/null || true
+    say "Removed standalone skill → $base/graph (plugin provides Graph)"
+  fi
+}
+
+remove_stale_design_skill() {
+  base=$1
+  if [ -d "$base/graph-design" ]; then
+    rm -rf "$base/graph-design" 2>/dev/null || true
+    say "Removed stale skill → $base/graph-design"
+  fi
+}
+
 install_planner_skills() {
   base=$1
   install_one_skill "$skill_src" "$base/graph" || return 1
-  install_one_skill "$design_skill_src" "$base/graph-design" || return 1
+  remove_stale_design_skill "$base"
 }
 
 merge_mcp() {
@@ -86,10 +101,12 @@ run_host() {
 
 install_codex() {
   if have codex; then
-    try_plugin_cli 'Codex marketplace install' codex plugin marketplace add "$repo_root" \
-      && try_plugin_cli 'Codex plugin add' codex plugin add graph@opengraph \
-      && say 'Codex ready. New session → $graph <goal>' \
-      && return 0
+    if try_plugin_cli 'Codex marketplace install' codex plugin marketplace add "$repo_root" \
+      && try_plugin_cli 'Codex plugin add' codex plugin add graph@opengraph; then
+      remove_stale_graph_skill "${HOME}/.codex/skills"
+      say 'Codex ready. New session → $graph <goal>'
+      return 0
+    fi
   else
     warn 'codex not on PATH'
   fi
@@ -99,8 +116,12 @@ install_codex() {
 
 install_claude() {
   if have claude; then
-    try_plugin_cli 'Claude marketplace install' claude plugin marketplace add "$repo_root" \
-      && try_plugin_cli 'Claude plugin install' claude plugin install graph@opengraph --scope user
+    if try_plugin_cli 'Claude marketplace install' claude plugin marketplace add "$repo_root" \
+      && try_plugin_cli 'Claude plugin install' claude plugin install graph@opengraph --scope user; then
+      remove_stale_graph_skill "${HOME}/.claude/skills"
+      say 'Claude Code ready. New session → /graph <goal> or /graph:graph <goal>'
+      return 0
+    fi
   else
     warn 'claude not on PATH'
   fi
@@ -149,10 +170,6 @@ install_openclaw() {
     if openclaw skills install "$skill_src" --global --as graph >/dev/null 2>&1 \
       || openclaw skills install "$skill_src" --as graph >/dev/null 2>&1; then
       say 'OpenClaw skill registered via CLI'
-    fi
-    if openclaw skills install "$design_skill_src" --global --as graph-design >/dev/null 2>&1 \
-      || openclaw skills install "$design_skill_src" --as graph-design >/dev/null 2>&1; then
-      say 'OpenClaw graph-design skill registered via CLI'
     fi
     if openclaw mcp add graph --command "$launch" >/dev/null 2>&1 \
       || openclaw mcp set graph --command "$launch" >/dev/null 2>&1; then
@@ -208,7 +225,7 @@ install_qwen() {
 
 install_agents() {
   install_planner_skills "${HOME}/.agents/skills" || true
-  say 'Shared Agent Skills installed → ~/.agents/skills/graph (+ graph-design)'
+  say 'Shared Agent Skills installed → ~/.agents/skills/graph'
 }
 
 install_all() {

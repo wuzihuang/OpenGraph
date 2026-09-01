@@ -21,6 +21,19 @@ CREATE TABLE IF NOT EXISTS migrations(version INTEGER PRIMARY KEY,applied_at TEX
     version: 2,
     sql: "ALTER TABLE runs ADD COLUMN resumed_count INTEGER NOT NULL DEFAULT 0;",
   },
+  {
+    version: 3,
+    sql: `CREATE TABLE IF NOT EXISTS node_comments(
+  id TEXT PRIMARY KEY,
+  graph_id TEXT NOT NULL,
+  node_id TEXT NOT NULL,
+  role TEXT NOT NULL,
+  body TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_node_comments_graph_node
+  ON node_comments(graph_id, node_id, created_at);`,
+  },
 ];
 
 export function applyMigrations(db: Database.Database): void {

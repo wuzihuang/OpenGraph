@@ -30,22 +30,12 @@ export function App() {
         runStatus={dashboard.runStatus}
         validationIssueCount={dashboard.validation.issues.length}
         errorCount={graph.errorCount}
-        approving={dashboard.approving}
         searchOpen={dashboard.searchOpen}
         searchQuery={dashboard.searchQuery}
         searchResults={graph.searchResults}
-        onModeChange={dashboard.setMode}
-        onStartOrShowRun={function startRun() {
-          void dashboard.startOrShowRun();
-        }}
-        onApprove={function approveRun() {
-          void dashboard.approve();
-        }}
-        onReject={function rejectRun() {
-          void dashboard.reject();
-        }}
-        onRunAction={function runAction(action) {
-          void dashboard.performRunAction(action);
+        onShowReview={dashboard.showReview}
+        onShowRun={function attachLive() {
+          void dashboard.showRun();
         }}
         onSearchOpenChange={dashboard.setSearchOpen}
         onSearchQueryChange={dashboard.setSearchQuery}
@@ -57,21 +47,24 @@ export function App() {
         </div>
       )}
       <section
-        className={`workspace ${
+        className={`workspace workspace-full ${
           dashboard.inspectorOpen ? "" : "inspector-closed"
         }`}
       >
         <Workspace
           mode={dashboard.mode}
           graphId={dashboard.graphId}
+          runId={dashboard.runId}
+          runStatus={dashboard.runStatus}
           spec={dashboard.spec}
-          view={dashboard.workspaceView}
           inspectorOpen={dashboard.inspectorOpen}
+          passportOpen={dashboard.passportOpen}
           graph={graph}
           events={dashboard.events}
           statuses={dashboard.statuses}
-          onViewChange={dashboard.setWorkspaceView}
           onSelectNode={dashboard.selectNode}
+          onClosePassport={dashboard.closePassport}
+          onOpenInspectorPanel={dashboard.openInspectorPanel}
           onOpenInspector={function reopenInspector() {
             dashboard.setInspectorOpen(true);
           }}
@@ -82,7 +75,8 @@ export function App() {
             panel={dashboard.panel}
             agentOptions={graph.agentOptions}
             nodeEvents={graph.nodeEvents}
-            runUnavailable={!dashboard.runId}
+            graphId={dashboard.graphId}
+            token={dashboard.token}
             validationValid={dashboard.validation.valid}
             onClose={function closeInspector() {
               dashboard.setInspectorOpen(false);
@@ -91,12 +85,6 @@ export function App() {
             onUpdateActive={dashboard.updateActive}
             onSaveAmendment={function saveGraphAmendment() {
               void dashboard.saveAmendment();
-            }}
-            onReassign={function reassignNode() {
-              void dashboard.reassignActiveNode();
-            }}
-            onRetry={function retryNode() {
-              void dashboard.retryActiveNode();
             }}
           />
         )}

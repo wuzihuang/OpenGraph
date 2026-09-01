@@ -108,7 +108,7 @@ export function buildPlannerBrief(
   const assignmentHints = [
     "For each graph node, choose an agent whose keyCapabilities cover the node’s requiredCapabilities.",
     "Prefer preferredAgents when several agents share the same capability tags.",
-    "Use skill:<name> when a node depends on a host skill workflow (e.g. skill:graph-design is for the planner, not a worker).",
+    "Use skill:<name> when a node depends on a host skill workflow (e.g. skill:graph is the planner entrypoint, not a worker node).",
     "Use mcp:<server> or domain tags (browser, github, …) when a node needs that integration.",
     "Default code workers to filesystem.read + filesystem.write + terminal when no special MCP/skill is required.",
   ];
