@@ -1,0 +1,27 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+target=${1:-all}
+
+install_codex() {
+  codex plugin marketplace add "$repo_root"
+  codex plugin add graph@graph-engineer
+  printf '%s\n' 'Graph installed for Codex. Start a new session and use $graph <goal>.'
+}
+
+install_claude() {
+  claude plugin marketplace add "$repo_root"
+  claude plugin install graph@graph-engineer --scope user
+  alias_dir=${HOME}/.claude/skills/graph
+  mkdir -p "$alias_dir"
+  cp "$repo_root/plugins/graph/skills/graph/SKILL.md" "$alias_dir/SKILL.md"
+  printf '%s\n' 'Graph installed for Claude Code. Start a new session and use /graph <goal>.'
+}
+
+case "$target" in
+  codex) install_codex ;;
+  claude) install_claude ;;
+  all) install_codex; install_claude ;;
+  *) printf '%s\n' 'Usage: ./install-graph [codex|claude|all]' >&2; exit 64 ;;
+esac

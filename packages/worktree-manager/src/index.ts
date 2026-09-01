@@ -1,0 +1,14 @@
+import { mkdir,writeFile } from 'node:fs/promises';import { join } from 'node:path';import { execa } from 'execa';import { minimatch } from 'minimatch';import { safeEnvironment } from '../../acp-client/src/index.ts';
+const git=(root:string,args:string[])=>execa('git',args,{cwd:root,env:safeEnvironment()});
+export class WorktreeManager{constructor(readonly repoRoot:string,readonly stateRoot=join(repoRoot,'.graph-engineer')){}
+  async dirtyBase(){const result=await git(this.repoRoot,['status','--porcelain','--','.',' :(exclude).graph-engineer/**'.trim()]);return result.stdout.trim().length>0}
+  path(projectId:string,runId:string,nodeId:string){return join(this.stateRoot,'worktrees',projectId,runId,nodeId)}
+  async create(projectId:string,runId:string,nodeId:string,baseRef:string){if(await this.dirtyBase())throw new Error('DIRTY_BASE_REPOSITORY');const path=this.path(projectId,runId,nodeId),branch=`graph/${runId}/${nodeId}`,listed=await git(this.repoRoot,['worktree','list','--porcelain']);if(listed.stdout.split('\n').includes(`worktree ${path}`))return {path,branch};await mkdir(join(path,'..'),{recursive:true});const exists=await execa('git',['show-ref','--verify','--quiet',`refs/heads/${branch}`],{cwd:this.repoRoot,env:safeEnvironment(),reject:false});await git(this.repoRoot,exists.exitCode===0?['worktree','add',path,branch]:['worktree','add','-b',branch,path,baseRef]);return {path,branch}}
+  async cleanup(path:string){await git(this.repoRoot,['worktree','remove','--force',path])}
+  async changedFiles(path:string){const result=await git(path,['status','--porcelain']);return result.stdout.split('\n').filter(Boolean).map(line=>line.slice(3))}
+  verifyWriteGlobs(files:string[],globs:string[]){const outside=files.filter(file=>!globs.some(glob=>minimatch(file,glob,{dot:true})));return {valid:outside.length===0,outside}}
+  async collectDiff(path:string,artifactPath:string){await git(path,['add','--intent-to-add','.']);const result=await git(path,['diff','--binary','HEAD']);await mkdir(join(artifactPath,'..'),{recursive:true});await writeFile(artifactPath,result.stdout);return artifactPath}
+  async commit(path:string,message:string){await git(path,['add','-A']);await git(path,['commit','-m',message]);return (await git(path,['rev-parse','HEAD'])).stdout.trim()}
+  async integrate(integrationPath:string,commits:string[]){for(const commit of commits){const result=await execa('git',['cherry-pick',commit],{cwd:integrationPath,env:safeEnvironment(),reject:false});if(result.exitCode!==0)return {success:false,conflict:result.stderr}}return {success:true,conflict:null}}
+}
+export async function terminateProcessGroup(pid:number,graceMs=500){try{process.kill(-pid,'SIGTERM')}catch{}await new Promise(resolve=>setTimeout(resolve,graceMs));try{process.kill(-pid,'SIGKILL')}catch{}}

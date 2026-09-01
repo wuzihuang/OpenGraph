@@ -1,0 +1,47 @@
+{
+  "name": "graph-engineer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.15.0",
+  "pnpm": { "onlyBuiltDependencies": ["better-sqlite3"] },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @graph-engineer/daemon --filter @graph-engineer/web dev",
+    "dev:web": "pnpm --filter @graph-engineer/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "test": "vitest run",
+    "e2e": "playwright test",
+    "graphctl": "tsx apps/cli/src/index.ts",
+    "plugin:build": "node scripts/build-plugin.mjs"
+  },
+  "dependencies": {
+    "@agentclientprotocol/sdk": "^1.4.0",
+    "@fastify/static": "^8.3.0",
+    "@fastify/websocket": "^11.3.0",
+    "@langchain/langgraph": "^1.4.13",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "better-sqlite3": "^13.0.3",
+    "commander": "^14.0.0",
+    "drizzle-orm": "^0.45.2",
+    "execa": "^9.6.0",
+    "fastify": "^5.6.0",
+    "minimatch": "^10.0.3",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.34.0",
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.3.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
+    "eslint": "^9.34.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

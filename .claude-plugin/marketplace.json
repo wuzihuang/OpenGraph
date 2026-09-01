@@ -1,0 +1,16 @@
+{
+  "name": "graph-engineer",
+  "owner": {
+    "name": "Graph Engineer"
+  },
+  "description": "Graph plugins for auditable repository planning and execution.",
+  "plugins": [
+    {
+      "name": "graph",
+      "source": "./plugins/graph",
+      "description": "Turn a coding goal into a validated execution graph and open a local review dashboard.",
+      "version": "0.1.0",
+      "category": "Developer Tools"
+    }
+  ]
+}

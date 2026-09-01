@@ -1,0 +1,26 @@
+{
+  "name": "graph",
+  "version": "0.1.0+codex.20260901123445",
+  "description": "Turn a coding goal into a validated execution graph, then review and run it from a local dashboard.",
+  "author": {
+    "name": "Graph Engineer"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Graph",
+    "shortDescription": "Plan work as a reviewable execution graph.",
+    "longDescription": "Graph inspects a repository, validates a safe execution plan, publishes a draft, and opens a local dashboard for human review and approval.",
+    "developerName": "Graph Engineer",
+    "category": "DeveloperTools",
+    "capabilities": [
+      "Interactive",
+      "Local MCP",
+      "Dashboard"
+    ],
+    "defaultPrompt": [
+      "Use Graph to plan and execute this repository task.",
+      "Turn this goal into a reviewable execution graph."
+    ]
+  },
+  "mcpServers": "./.mcp.json"
+}

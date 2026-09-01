@@ -1,0 +1,1 @@
+{"name":"@graph-engineer/cli","version":"0.1.0","type":"module","bin":{"graphctl":"./src/index.ts"},"scripts":{"build":"tsc --noEmit"}}

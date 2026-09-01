@@ -1,0 +1,12 @@
+node_modules/
+dist/
+playwright-report/
+test-results/
+.graph-engineer*/
+.env
+.env.*
+.DS_Store
+coverage/
+*.db
+*.db-shm
+*.db-wal

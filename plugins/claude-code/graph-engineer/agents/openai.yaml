@@ -1,0 +1,3 @@
+interface:
+  display_name: "Graph Engineer"
+  short_description: "Plan validated execution graphs for review"
