@@ -1,43 +1,11 @@
-import Database from 'better-sqlite3';
-import { createHash, randomUUID } from 'node:crypto';
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import type { GraphSpec, NormalizedRunEvent, RunEventType, RunState } from '../../contracts/src/index.ts';
-export * from './schema.ts';
-
-const migrations=[{version:1,sql:`
-CREATE TABLE IF NOT EXISTS projects(id TEXT PRIMARY KEY,root TEXT NOT NULL,created_at TEXT NOT NULL);
-CREATE TABLE IF NOT EXISTS agent_installations(id TEXT PRIMARY KEY,data TEXT NOT NULL,probed_at TEXT NOT NULL);
-CREATE TABLE IF NOT EXISTS graph_specs(id TEXT PRIMARY KEY,project_id TEXT NOT NULL,created_at TEXT NOT NULL);
-CREATE TABLE IF NOT EXISTS graph_versions(id TEXT PRIMARY KEY,graph_id TEXT NOT NULL,version INTEGER NOT NULL,spec TEXT NOT NULL,status TEXT NOT NULL,created_at TEXT NOT NULL,UNIQUE(graph_id,version));
-CREATE TABLE IF NOT EXISTS runs(id TEXT PRIMARY KEY,graph_id TEXT NOT NULL,graph_version_id TEXT NOT NULL,status TEXT NOT NULL,state TEXT NOT NULL,created_at TEXT NOT NULL,updated_at TEXT NOT NULL);
-CREATE TABLE IF NOT EXISTS node_runs(id TEXT PRIMARY KEY,run_id TEXT NOT NULL,node_id TEXT NOT NULL,attempt INTEGER NOT NULL,status TEXT NOT NULL,session_id TEXT,updated_at TEXT NOT NULL,UNIQUE(run_id,node_id,attempt));
-CREATE TABLE IF NOT EXISTS agent_sessions(id TEXT PRIMARY KEY,run_id TEXT NOT NULL,node_id TEXT NOT NULL,attempt INTEGER NOT NULL,role TEXT NOT NULL,status TEXT NOT NULL);
-CREATE TABLE IF NOT EXISTS events(event_id TEXT PRIMARY KEY,sequence INTEGER NOT NULL,timestamp TEXT NOT NULL,project_id TEXT NOT NULL,graph_id TEXT NOT NULL,run_id TEXT NOT NULL,node_id TEXT,attempt INTEGER NOT NULL,agent_id TEXT,agent_session_id TEXT,type TEXT NOT NULL,payload TEXT NOT NULL,UNIQUE(run_id,sequence));
-CREATE TABLE IF NOT EXISTS artifacts(id TEXT PRIMARY KEY,run_id TEXT NOT NULL,node_id TEXT NOT NULL,name TEXT NOT NULL,path TEXT NOT NULL,hash TEXT NOT NULL,created_at TEXT NOT NULL);
-CREATE TABLE IF NOT EXISTS approvals(id TEXT PRIMARY KEY,graph_version_id TEXT NOT NULL,run_id TEXT,decision TEXT NOT NULL,actor TEXT NOT NULL,created_at TEXT NOT NULL);
-CREATE TABLE IF NOT EXISTS migrations(version INTEGER PRIMARY KEY,applied_at TEXT NOT NULL);`},{version:2,sql:`ALTER TABLE runs ADD COLUMN resumed_count INTEGER NOT NULL DEFAULT 0;`}];
-
-export class EventStore{
-  readonly db:Database.Database; readonly root:string;
-  constructor(dbPath:string,root=join(dirname(dbPath),'runs')){mkdirSync(dirname(dbPath),{recursive:true});this.root=root;mkdirSync(root,{recursive:true});this.db=new Database(dbPath);this.db.pragma('journal_mode = WAL');this.db.pragma('foreign_keys = ON');this.migrate()}
-  close(){this.db.close()}
-  migrate(){this.db.exec('CREATE TABLE IF NOT EXISTS migrations(version INTEGER PRIMARY KEY,applied_at TEXT NOT NULL)');const done=new Set((this.db.prepare('SELECT version FROM migrations').all() as {version:number}[]).map(row=>row.version));for(const migration of migrations)if(!done.has(migration.version)){const tx=this.db.transaction(()=>{try{this.db.exec(migration.sql)}catch(error){if(!(error instanceof Error)||!error.message.includes('duplicate column'))throw error}this.db.prepare('INSERT INTO migrations(version,applied_at) VALUES(?,?)').run(migration.version,new Date().toISOString())});tx()}}
-  createProject(root:string){const id=`project_${randomUUID()}`;this.db.prepare('INSERT INTO projects VALUES(?,?,?)').run(id,root,new Date().toISOString());return id}
-  publishGraph(projectId:string,spec:GraphSpec){const graphId=`graph_${randomUUID()}`,versionId=`${graphId}:1`,now=new Date().toISOString();const tx=this.db.transaction(()=>{this.db.prepare('INSERT INTO graph_specs VALUES(?,?,?)').run(graphId,projectId,now);this.db.prepare('INSERT INTO graph_versions(id,graph_id,version,spec,status,created_at) VALUES(?,?,?,?,?,?)').run(versionId,graphId,1,JSON.stringify(spec),'draft',now)});tx();return {graphId,graphVersion:1,graphVersionId:versionId}}
-  amendGraph(graphId:string,spec:GraphSpec){const row=this.db.prepare('SELECT COALESCE(MAX(version),0)+1 AS version FROM graph_versions WHERE graph_id=?').get(graphId) as {version:number};const id=`${graphId}:${row.version}`;this.db.prepare('INSERT INTO graph_versions(id,graph_id,version,spec,status,created_at) VALUES(?,?,?,?,?,?)').run(id,graphId,row.version,JSON.stringify(spec),'draft',new Date().toISOString());return {graphVersion:row.version,graphVersionId:id}}
-  getGraph(graphId:string){const row=this.db.prepare('SELECT * FROM graph_versions WHERE graph_id=? ORDER BY version DESC LIMIT 1').get(graphId) as any;return row?{...row,spec:JSON.parse(row.spec)}:null}
-  getGraphVersion(graphVersionId:string){const row=this.db.prepare('SELECT * FROM graph_versions WHERE id=?').get(graphVersionId) as any;return row?{...row,spec:JSON.parse(row.spec)}:null}
-  listGraphs(){return (this.db.prepare('SELECT gs.id,gv.version,gv.status,gv.created_at,gv.spec FROM graph_specs gs JOIN graph_versions gv ON gv.graph_id=gs.id WHERE gv.version=(SELECT MAX(version) FROM graph_versions WHERE graph_id=gs.id) ORDER BY gv.created_at DESC').all() as any[]).map(row=>({...row,spec:JSON.parse(row.spec)}))}
-  approve(graphVersionId:string,actor='local-human'){const row=this.db.prepare('SELECT status FROM graph_versions WHERE id=?').get(graphVersionId) as {status:string}|undefined;if(!row)throw new Error('Graph version not found');this.db.prepare('UPDATE graph_versions SET status=? WHERE id=?').run('approved',graphVersionId);this.db.prepare('INSERT INTO approvals VALUES(?,?,?,?,?,?)').run(`approval_${randomUUID()}`,graphVersionId,null,'approved',actor,new Date().toISOString())}
-  reject(graphVersionId:string,actor='local-human'){this.db.prepare('UPDATE graph_versions SET status=? WHERE id=?').run('rejected',graphVersionId);this.db.prepare('INSERT INTO approvals VALUES(?,?,?,?,?,?)').run(`approval_${randomUUID()}`,graphVersionId,null,'rejected',actor,new Date().toISOString())}
-  createRun(graphId:string,graphVersionId:string,state:RunState){const version=this.db.prepare('SELECT status FROM graph_versions WHERE id=?').get(graphVersionId) as {status:string}|undefined;if(version?.status!=='approved')throw new Error('APPROVAL_REQUIRED');const id=state.runId,now=new Date().toISOString();this.db.prepare('INSERT INTO runs(id,graph_id,graph_version_id,status,state,created_at,updated_at) VALUES(?,?,?,?,?,?,?)').run(id,graphId,graphVersionId,'pending',JSON.stringify(state),now,now);return id}
-  updateRun(runId:string,status:string,state:RunState){this.db.prepare('UPDATE runs SET status=?,state=?,updated_at=? WHERE id=?').run(status,JSON.stringify(state),new Date().toISOString(),runId)}
-  getRun(runId:string){const row=this.db.prepare('SELECT * FROM runs WHERE id=?').get(runId) as any;return row?{...row,state:JSON.parse(row.state)}:null}
-  resumableRuns(){return (this.db.prepare("SELECT * FROM runs WHERE status IN ('pending','running','paused')").all() as any[]).map(row=>({...row,state:JSON.parse(row.state)}))}
-  upsertNodeRun(runId:string,nodeId:string,attempt:number,status:string,sessionId:string|null=null){const id=`${runId}:${nodeId}:${attempt}`;this.db.prepare(`INSERT INTO node_runs(id,run_id,node_id,attempt,status,session_id,updated_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(run_id,node_id,attempt) DO UPDATE SET status=excluded.status,session_id=excluded.session_id,updated_at=excluded.updated_at`).run(id,runId,nodeId,attempt,status,sessionId,new Date().toISOString())}
-  createSession(runId:string,nodeId:string,attempt:number,role:'worker'|'verifier'){const id=`session_${randomUUID()}`;this.db.prepare('INSERT INTO agent_sessions VALUES(?,?,?,?,?,?)').run(id,runId,nodeId,attempt,role,'active');return id}
-  appendEvent(base:{projectId:string;graphId:string;runId:string;nodeId:string|null;attempt:number;agentId:string|null;agentSessionId:string|null;type:RunEventType;payload:Record<string,unknown>}):NormalizedRunEvent{return this.db.transaction(()=>{const row=this.db.prepare('SELECT COALESCE(MAX(sequence),0)+1 AS sequence FROM events WHERE run_id=?').get(base.runId) as {sequence:number};const event:NormalizedRunEvent={eventId:`event_${randomUUID()}`,sequence:row.sequence,timestamp:new Date().toISOString(),...base};this.db.prepare('INSERT INTO events VALUES(?,?,?,?,?,?,?,?,?,?,?,?)').run(event.eventId,event.sequence,event.timestamp,event.projectId,event.graphId,event.runId,event.nodeId,event.attempt,event.agentId,event.agentSessionId,event.type,JSON.stringify(event.payload));return event})()}
-  eventsAfter(runId:string,sequence=0):NormalizedRunEvent[]{return (this.db.prepare('SELECT * FROM events WHERE run_id=? AND sequence>? ORDER BY sequence').all(runId,sequence) as any[]).map(row=>({eventId:row.event_id,sequence:row.sequence,timestamp:row.timestamp,projectId:row.project_id,graphId:row.graph_id,runId:row.run_id,nodeId:row.node_id,attempt:row.attempt,agentId:row.agent_id,agentSessionId:row.agent_session_id,type:row.type,payload:JSON.parse(row.payload)}))}
-  writeArtifact(runId:string,nodeId:string,name:string,content:string){const dir=join(this.root,runId,'artifacts',nodeId);mkdirSync(dir,{recursive:true});const path=join(dir,name),hash=createHash('sha256').update(content).digest('hex');writeFileSync(path,content);this.db.prepare('INSERT INTO artifacts VALUES(?,?,?,?,?,?,?)').run(`artifact_${randomUUID()}`,runId,nodeId,name,path,hash,new Date().toISOString());return {path,hash}}
-}
+export * from "./schema.ts";
+export { EventStore } from "./store.ts";
+export type {
+  AmendedGraph,
+  AppendEventInput,
+  ArtifactRecord,
+  GraphListRecord,
+  GraphVersionRecord,
+  PublishedGraph,
+  RunRecord,
+} from "./types.ts";

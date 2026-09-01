@@ -10,3 +10,16 @@ coverage/
 *.db
 *.db-shm
 *.db-wal
+
+# Local-only — never push to GitHub
+artifacts/
+tests/
+fixtures/
+design-qa.md
+playwright.config.ts
+vitest.config.ts
+
+.pnpm-store/
+.cursor/
+/.qoder-plugin/
+/.zcode-plugin/

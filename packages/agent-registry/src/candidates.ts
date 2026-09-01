@@ -1,0 +1,88 @@
+import type { AgentCandidate } from "./types.ts";
+import {
+  PLANNER_BASE_CAPABILITIES,
+  WORKER_BASE_CAPABILITIES,
+} from "./capabilities.ts";
+
+export const AGENT_CANDIDATES: AgentCandidate[] = [
+  {
+    id: "claude",
+    displayName: "Claude Agent",
+    binary: "claude",
+    adapter: ["claude-agent-acp"],
+    transport: "acp-stdio",
+    capabilities: [...WORKER_BASE_CAPABILITIES],
+  },
+  {
+    id: "codex",
+    displayName: "Codex",
+    binary: "codex",
+    adapter: ["codex-acp"],
+    transport: "acp-stdio",
+    capabilities: [...WORKER_BASE_CAPABILITIES],
+  },
+  {
+    id: "kimi",
+    displayName: "Kimi CLI",
+    binary: "kimi",
+    adapter: ["kimi", "acp"],
+    transport: "acp-stdio",
+    capabilities: [...WORKER_BASE_CAPABILITIES],
+  },
+  {
+    id: "qoder",
+    displayName: "Qoder CLI",
+    binary: "qoder",
+    adapter: ["qoder", "acp"],
+    transport: "acp-stdio",
+    capabilities: [...WORKER_BASE_CAPABILITIES],
+  },
+  {
+    id: "cursor",
+    displayName: "Cursor Agent",
+    binary: "agent",
+    adapter: ["agent", "acp"],
+    transport: "acp-stdio",
+    capabilities: [...WORKER_BASE_CAPABILITIES],
+  },
+  {
+    id: "hermes",
+    displayName: "Hermes Agent",
+    binary: "hermes",
+    adapter: [],
+    transport: "invocation_surface_only",
+    capabilities: [...PLANNER_BASE_CAPABILITIES],
+  },
+  {
+    id: "openclaw",
+    displayName: "OpenClaw",
+    binary: "openclaw",
+    adapter: [],
+    transport: "invocation_surface_only",
+    capabilities: [...PLANNER_BASE_CAPABILITIES],
+  },
+  {
+    id: "gemini",
+    displayName: "Gemini CLI",
+    binary: "gemini",
+    adapter: [],
+    transport: "invocation_surface_only",
+    capabilities: [...PLANNER_BASE_CAPABILITIES],
+  },
+  {
+    id: "zcode",
+    displayName: "ZCode",
+    binary: "zcode",
+    adapter: [],
+    transport: "invocation_surface_only",
+    capabilities: [...PLANNER_BASE_CAPABILITIES],
+  },
+  {
+    id: "qwen",
+    displayName: "Qwen Code",
+    binary: "qwen",
+    adapter: [],
+    transport: "invocation_surface_only",
+    capabilities: [...PLANNER_BASE_CAPABILITIES],
+  },
+];

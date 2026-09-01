@@ -4,7 +4,7 @@ OpenGraph is a local-first Graph Engineering compiler and runtime. A host model 
 
 ## Trust boundaries
 
-1. **Planner surface** — Codex/Claude skills call MCP discovery, inspection, validation, draft publication, status, and amendment tools. No planner-facing tool can approve or execute a graph.
+1. **Planner surface** — Any supported host (Codex, Claude Code, Cursor, Qoder, ZCode, OpenClaw, Hermes, Kimi, Gemini, Qwen, or shared Agent Skills) loads the Graph skill (workflow) plus the graph-design skill (topology doctrine) and calls MCP discovery, inspection, validation, draft publication, status, and amendment tools. No planner-facing tool can approve or execute a graph.
 2. **Graph compiler** — Zod parsing and deterministic lint rules form the only path from a draft into an executable graph.
 3. **Human approval** — a version-specific approval from the dashboard or `graphctl graph approve` is required before a run can leave `awaiting_approval`.
 4. **Runtime** — `graphd` schedules ready nodes with a global width budget, persists every transition, uses isolated worktrees for writers, and resumes incomplete runs after restart.
@@ -12,19 +12,27 @@ OpenGraph is a local-first Graph Engineering compiler and runtime. A host model 
 
 ## Components
 
-- `apps/daemon`: Fastify HTTP/WebSocket API, session-token middleware, lifecycle recovery.
+- `apps/daemon`: thin executable entry point for the local daemon.
 - `apps/web`: React/Vite dashboard with review and run modes.
 - `apps/cli`: `graphctl` command surface.
+- `packages/daemon-core`: Fastify HTTP/WebSocket routes, authentication, dashboard hosting, and lifecycle recovery.
+- `packages/api-client`: shared authenticated JSON client used by CLI and MCP surfaces.
 - `packages/contracts`: GraphSpec, event, task, result, and verification contracts.
 - `packages/graph-compiler`: deterministic linter and LangGraphJS compiler adapter.
 - `packages/graph-runtime`: approval interrupt, ready-node scheduler, retries, cancellation, checkpoints, recovery.
 - `packages/acp-client`: ACP process lifecycle and event normalization.
-- `packages/agent-registry`: safe PATH/version discovery and adapter inventory.
+- `packages/agent-registry`: safe PATH/version discovery, MCP server-name inventory (no secrets), and planner capability summaries.
 - `packages/repo-intelligence`: repository metadata and command discovery.
 - `packages/worktree-manager`: branch/worktree isolation, diff and write-scope verification, integration.
 - `packages/event-store`: SQLite WAL schema, migrations, monotonic run events, artifact metadata.
 - `packages/mock-acp-agent`: local ACP-compatible process used by the complete demo.
+- `packages/claude-code-agent`: Claude Code worker adapter used when the executable is available.
 - `packages/plugin-mcp`: planner-safe MCP tools.
+
+Package entry points are stable barrels. Contracts, compiler rules, persistence queries, scheduling,
+node execution, and transport routes live in focused modules behind those entry points. Generated
+plugin files under `plugins/graph/runtime` are produced only by `pnpm plugin:build`; see the
+[development guide](development.md) for source and verification boundaries.
 
 ## Persistent model
 
@@ -41,3 +49,9 @@ Every normalized event is committed before WebSocket broadcast. Reconnecting cli
 ## Safety model
 
 The daemon binds to `127.0.0.1`, requires a random local session token, passes an allowlisted environment to child processes, redacts common secret shapes, never persists agent credentials, uses argument arrays, and cancels ACP before terminating the whole process group. Network, package installation, publishing, pushing, deletion, payment, and other irreversible operations require explicit approval.
+
+Graph Engineering controls map to three Perez anchors:
+
+1. **Anchors** — physical acceptance commands, write-glob checks, artifact hashes, and diffs are external facts workers cannot invent.
+2. **Frozen nodes** — `acceptanceFrozen` plus immutable graph versions keep evaluation criteria out of the optimizer's hands.
+3. **External judgment** — humans approve each version; planner MCP tools cannot approve or execute.

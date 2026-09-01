@@ -1,12 +1,221 @@
-import type { GraphNode, GraphSpec } from '../../contracts/src/index.ts';
-const node=(value:Partial<GraphNode>&Pick<GraphNode,'id'|'title'|'kind'|'objective'|'inputs'|'outputs'>):GraphNode=>({agentSelector:{requiredCapabilities:['filesystem.read','terminal'],preferredAgents:['mock']},workspace:{mode:'readonly',readGlobs:['**'],writeGlobs:[]},acceptanceChecks:[{type:'artifact',description:'Required artifact is present'}],retryPolicy:{maxAttempts:1,freshSession:true,backoffMs:0},timeoutSeconds:20,verifierPolicy:{required:false,freshSession:true,readonly:true},approvalPolicy:'none',irreversible:false,...value});
-export function createDemoSpec(root:string,goal='Build and verify a resilient feature in the sample repository'):GraphSpec{return {version:'1.0',executionMode:'graph',goal,acceptanceCriteria:['Both parallel workers complete','A failed verification retries in a fresh session','Integration and final acceptance succeed'],repository:{root,baseRef:'main'},policies:{maxParallel:2,maxGraphDepth:8,maxNodeAttempts:2,maxRuntimeSeconds:120,networkPolicy:'approval_required',nestedSubagents:false,approvalPolicy:'human_required'},nodes:[
-  node({id:'analyze_repo',title:'Map repository',kind:'analysis',objective:'Inspect repository boundaries and emit an explicit implementation map.',inputs:['repo'],outputs:[{name:'repo-map.json',type:'json'}]}),
-  node({id:'implement_runtime',title:'Runtime & recovery',kind:'worker',objective:'Implement durable runtime behavior in its isolated write scope.',inputs:['repo-map.json'],outputs:[{name:'runtime.patch',type:'git_patch'}],workspace:{mode:'worktree',readGlobs:['**'],writeGlobs:['src/runtime/**']},acceptanceChecks:[{type:'command',command:'npm test',description:'Runtime tests pass'}],retryPolicy:{maxAttempts:2,freshSession:true,backoffMs:0},verifierPolicy:{required:true,freshSession:true,readonly:true}}),
-  node({id:'implement_dashboard',title:'Review dashboard',kind:'worker',objective:'Implement live review evidence and reconnect behavior; retry once when objective evidence is incomplete.',inputs:['repo-map.json'],outputs:[{name:'dashboard.patch',type:'git_patch'}],workspace:{mode:'worktree',readGlobs:['**'],writeGlobs:['src/dashboard/**']},acceptanceChecks:[{type:'command',command:'npm test',description:'Dashboard tests pass'}],retryPolicy:{maxAttempts:2,freshSession:true,backoffMs:0},verifierPolicy:{required:true,freshSession:true,readonly:true}}),
-  node({id:'integrate',title:'Integrate artifacts',kind:'integration',objective:'Combine the two isolated patches into an auditable integration result.',inputs:['runtime.patch','dashboard.patch'],outputs:[{name:'integration.diff',type:'diff'}],workspace:{mode:'integration',readGlobs:['**'],writeGlobs:['src/**']},verifierPolicy:{required:true,freshSession:true,readonly:true}}),
-  node({id:'fresh_verify',title:'Fresh verification',kind:'verifier',objective:'Seek objective reasons to reject the integrated result using diff and test evidence only.',inputs:['integration.diff'],outputs:[{name:'verification.json',type:'json'}]}),
-  node({id:'acceptance',title:'Acceptance suite',kind:'acceptance',objective:'Run the final acceptance suite and publish the complete execution report.',inputs:['verification.json'],outputs:[{name:'run-report.json',type:'test_report'}],acceptanceChecks:[{type:'command',command:'npm test',description:'Final sample acceptance passes'}]})
-],edges:[
-  {from:'analyze_repo',to:'implement_runtime',artifacts:['repo-map.json']},{from:'analyze_repo',to:'implement_dashboard',artifacts:['repo-map.json']},{from:'implement_runtime',to:'integrate',artifacts:['runtime.patch']},{from:'implement_dashboard',to:'integrate',artifacts:['dashboard.patch']},{from:'integrate',to:'fresh_verify',artifacts:['integration.diff']},{from:'fresh_verify',to:'acceptance',artifacts:['verification.json']}
-]}}
+import type { GraphNode, GraphSpec } from "../../contracts/src/index.ts";
+
+type DemoNodeInput = Partial<GraphNode> &
+  Pick<GraphNode, "id" | "title" | "kind" | "objective" | "inputs" | "outputs">;
+
+function createDemoNode(value: DemoNodeInput): GraphNode {
+  return {
+    agentSelector: {
+      requiredCapabilities: ["filesystem.read", "terminal"],
+      preferredAgents: ["mock"],
+    },
+    workspace: {
+      mode: "readonly",
+      readGlobs: ["**"],
+      writeGlobs: [],
+    },
+    acceptanceChecks: [
+      {
+        type: "artifact",
+        description: "Required artifact is present",
+        frozen: true,
+      },
+    ],
+    retryPolicy: {
+      maxAttempts: 1,
+      freshSession: true,
+      backoffMs: 0,
+    },
+    timeoutSeconds: 20,
+    verifierPolicy: {
+      required: false,
+      freshSession: true,
+      readonly: true,
+    },
+    approvalPolicy: "none",
+    irreversible: false,
+    ...value,
+  };
+}
+
+export function createDemoSpec(
+  root: string,
+  goal = "Build and verify a resilient feature in the sample repository",
+): GraphSpec {
+  return {
+    version: "1.0",
+    executionMode: "graph",
+    goal,
+    acceptanceCriteria: [
+      "Both parallel workers complete",
+      "A failed verification retries in a fresh session",
+      "Integration and final acceptance succeed",
+    ],
+    repository: {
+      root,
+      baseRef: "main",
+    },
+    policies: {
+      maxParallel: 2,
+      maxGraphDepth: 8,
+      maxNodeAttempts: 2,
+      maxRuntimeSeconds: 120,
+      networkPolicy: "approval_required",
+      nestedSubagents: false,
+      approvalPolicy: "human_required",
+      acceptanceFrozen: true,
+    },
+    nodes: [
+      createDemoNode({
+        id: "analyze_repo",
+        title: "Map repository",
+        kind: "analysis",
+        objective:
+          "Inspect repository boundaries and emit an explicit implementation map.",
+        inputs: ["repo"],
+        outputs: [{ name: "repo-map.json", type: "json" }],
+      }),
+      createDemoNode({
+        id: "implement_runtime",
+        title: "Runtime & recovery",
+        kind: "worker",
+        objective:
+          "Implement durable runtime behavior in its isolated write scope.",
+        inputs: ["repo-map.json"],
+        outputs: [{ name: "runtime.patch", type: "git_patch" }],
+        workspace: {
+          mode: "worktree",
+          readGlobs: ["**"],
+          writeGlobs: ["src/runtime/**"],
+        },
+        acceptanceChecks: [
+          {
+            type: "command",
+            command: "npm test",
+            description: "Runtime tests pass",
+            frozen: true,
+          },
+        ],
+        retryPolicy: {
+          maxAttempts: 2,
+          freshSession: true,
+          backoffMs: 0,
+        },
+        verifierPolicy: {
+          required: true,
+          freshSession: true,
+          readonly: true,
+        },
+      }),
+      createDemoNode({
+        id: "implement_dashboard",
+        title: "Review dashboard",
+        kind: "worker",
+        objective:
+          "Implement live review evidence and reconnect behavior; retry once when objective evidence is incomplete.",
+        inputs: ["repo-map.json"],
+        outputs: [{ name: "dashboard.patch", type: "git_patch" }],
+        workspace: {
+          mode: "worktree",
+          readGlobs: ["**"],
+          writeGlobs: ["src/dashboard/**"],
+        },
+        acceptanceChecks: [
+          {
+            type: "command",
+            command: "npm test",
+            description: "Dashboard tests pass",
+            frozen: true,
+          },
+        ],
+        retryPolicy: {
+          maxAttempts: 2,
+          freshSession: true,
+          backoffMs: 0,
+        },
+        verifierPolicy: {
+          required: true,
+          freshSession: true,
+          readonly: true,
+        },
+      }),
+      createDemoNode({
+        id: "integrate",
+        title: "Integrate artifacts",
+        kind: "integration",
+        objective:
+          "Combine the two isolated patches into an auditable integration result.",
+        inputs: ["runtime.patch", "dashboard.patch"],
+        outputs: [{ name: "integration.diff", type: "diff" }],
+        workspace: {
+          mode: "integration",
+          readGlobs: ["**"],
+          writeGlobs: ["src/**"],
+        },
+        verifierPolicy: {
+          required: true,
+          freshSession: true,
+          readonly: true,
+        },
+      }),
+      createDemoNode({
+        id: "fresh_verify",
+        title: "Fresh verification",
+        kind: "verifier",
+        objective:
+          "Seek objective reasons to reject the integrated result using diff and test evidence only.",
+        inputs: ["integration.diff"],
+        outputs: [{ name: "verification.json", type: "json" }],
+      }),
+      createDemoNode({
+        id: "acceptance",
+        title: "Acceptance suite",
+        kind: "acceptance",
+        objective:
+          "Run the final acceptance suite and publish the complete execution report.",
+        inputs: ["verification.json"],
+        outputs: [{ name: "run-report.json", type: "test_report" }],
+        acceptanceChecks: [
+          {
+            type: "command",
+            command: "npm test",
+            description: "Final sample acceptance passes",
+            frozen: true,
+          },
+        ],
+      }),
+    ],
+    edges: [
+      {
+        from: "analyze_repo",
+        to: "implement_runtime",
+        artifacts: ["repo-map.json"],
+      },
+      {
+        from: "analyze_repo",
+        to: "implement_dashboard",
+        artifacts: ["repo-map.json"],
+      },
+      {
+        from: "implement_runtime",
+        to: "integrate",
+        artifacts: ["runtime.patch"],
+      },
+      {
+        from: "implement_dashboard",
+        to: "integrate",
+        artifacts: ["dashboard.patch"],
+      },
+      {
+        from: "integrate",
+        to: "fresh_verify",
+        artifacts: ["integration.diff"],
+      },
+      {
+        from: "fresh_verify",
+        to: "acceptance",
+        artifacts: ["verification.json"],
+      },
+    ],
+  };
+}

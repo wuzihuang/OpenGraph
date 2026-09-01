@@ -1,0 +1,11 @@
+{
+  "name": "graph",
+  "version": "0.1.0",
+  "description": "Turn a coding goal into a validated execution graph and open a local review dashboard.",
+  "author": {
+    "name": "OpenGraph"
+  },
+  "homepage": "https://github.com/wuzihuang/OpenGraph",
+  "repository": "https://github.com/wuzihuang/OpenGraph",
+  "keywords": ["graph", "planning", "mcp", "dashboard"]
+}

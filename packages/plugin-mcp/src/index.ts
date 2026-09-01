@@ -1,19 +1,25 @@
 #!/usr/bin/env node
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';import { z } from 'zod';import { GraphSpecV1 } from '../../contracts/src/index.ts';import { startDaemon } from '../../../apps/daemon/src/server.ts';import { existsSync,readFileSync } from 'node:fs';import { homedir } from 'node:os';import { dirname,join } from 'node:path';import { fileURLToPath } from 'node:url';import { spawn } from 'node:child_process';
-const base=process.env.GRAPHD_URL??'http://127.0.0.1:4317';let token=process.env.GRAPHD_SESSION_TOKEN??'';let ownedDaemon:Awaited<ReturnType<typeof startDaemon>>|undefined;
-async function ensureDaemon(){const dataDir=process.env.GRAPH_ENGINEER_HOME??join(homedir(),'.graph');const tokenPath=join(dataDir,'session-token');try{const response=await fetch(`${base}/api/health`);if(response.ok){if(!token&&existsSync(tokenPath))token=readFileSync(tokenPath,'utf8').trim();if(!token)throw new Error(`Graph is already running at ${base}, but its session token is unavailable. Set GRAPHD_SESSION_TOKEN or stop that process.`);return}}catch(error){if(error instanceof Error&&error.message.includes('session token is unavailable'))throw error}
-  const url=new URL(base),here=process.env.GRAPH_PLUGIN_ROOT?join(process.env.GRAPH_PLUGIN_ROOT,'runtime'):dirname(fileURLToPath(import.meta.url)),bundledDashboard=join(here,'dashboard'),sourceDashboard=join(here,'..','..','..','apps','web','dist');ownedDaemon=await startDaemon({host:url.hostname,port:Number(url.port||4317),dataDir,webDist:existsSync(bundledDashboard)?bundledDashboard:sourceDashboard});token=ownedDaemon.token}
-async function call(path:string,init:RequestInit={}){const headers:Record<string,string>={authorization:`Bearer ${token}`,...(init.headers as Record<string,string>|undefined)};if(init.body)headers['content-type']='application/json';const response=await fetch(`${base}${path}`,{...init,headers});if(!response.ok)throw new Error(`graphd ${response.status}: ${await response.text()}`);return response.json()}const result=(value:unknown)=>({content:[{type:'text' as const,text:JSON.stringify(value,null,2)}]});
-function openUrl(url:string){if(process.env.GRAPH_OPEN_DASHBOARD==='false')return false;const command=process.platform==='darwin'?'open':process.platform==='win32'?'cmd':'xdg-open',args=process.platform==='win32'?['/c','start','',url]:[url];const child=spawn(command,args,{detached:true,stdio:'ignore'});child.on('error',()=>{});child.unref();return true}
-export const plannerToolNames=['graph_discover_environment','graph_inspect_repository','graph_validate_spec','graph_publish_draft','graph_get_graph','graph_get_run_status','graph_propose_amendment','graph_open_dashboard'] as const;
-export function createMcpServer(){const server=new McpServer({name:'graph-engineer',version:'0.1.0'});
-server.registerTool('graph_discover_environment',{description:'Discover graphd and locally available coding agents.'},async()=>result(await call('/api/agents')));
-server.registerTool('graph_inspect_repository',{description:'Inspect repository rules, status, and available commands.',inputSchema:{root:z.string()}},async({root})=>result(await call(`/api/repository?root=${encodeURIComponent(root)}`)));
-server.registerTool('graph_validate_spec',{description:'Deterministically validate a declarative GraphSpec. Re-run after every edit.',inputSchema:{spec:GraphSpecV1}},async({spec})=>result(await call('/api/graphs/validate',{method:'POST',body:JSON.stringify(spec)})));
-server.registerTool('graph_publish_draft',{description:'Publish a validated immutable draft for human review. This does not approve or execute it.',inputSchema:{spec:GraphSpecV1}},async({spec})=>result(await call('/api/graphs/publish',{method:'POST',body:JSON.stringify({spec})})));
-server.registerTool('graph_get_graph',{description:'Read the latest immutable version of a graph.',inputSchema:{graphId:z.string()}},async({graphId})=>result(await call(`/api/graphs/${graphId}`)));
-server.registerTool('graph_get_run_status',{description:'Read persisted run state and status.',inputSchema:{runId:z.string()}},async({runId})=>result(await call(`/api/runs/${runId}`)));
-server.registerTool('graph_propose_amendment',{description:'Create a new validated graph version; running versions are never edited in place.',inputSchema:{graphId:z.string(),spec:GraphSpecV1}},async({graphId,spec})=>result(await call(`/api/graphs/${graphId}/amend`,{method:'POST',body:JSON.stringify({spec})})));
-server.registerTool('graph_open_dashboard',{description:'Open the local review dashboard without granting approval.',inputSchema:{graphId:z.string()}},async({graphId})=>{const dashboardUrl=`${base}/?token=${encodeURIComponent(token)}&graph=${encodeURIComponent(graphId)}`;return result({dashboardUrl,opened:openUrl(dashboardUrl)})});return server}
-async function main(){await ensureDaemon();const server=createMcpServer();await server.connect(new StdioServerTransport())}
-if(Boolean(process.env.GRAPH_PLUGIN_ROOT)||import.meta.url===`file://${process.argv[1]}`)void main().catch(error=>{console.error(error);process.exitCode=1});
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { ensureDaemon } from "./daemon-lifecycle.ts";
+import { plannerToolNames } from "./register-tools.ts";
+import { createMcpServer } from "./server.ts";
+
+export { plannerToolNames, createMcpServer };
+
+async function main(): Promise<void> {
+  await ensureDaemon();
+  const server = createMcpServer();
+  await server.connect(new StdioServerTransport());
+}
+
+function handleMainError(error: unknown): void {
+  console.error(error);
+  process.exitCode = 1;
+}
+
+if (
+  Boolean(process.env.GRAPH_PLUGIN_ROOT) ||
+  import.meta.url === `file://${process.argv[1]}`
+) {
+  void main().catch(handleMainError);
+}

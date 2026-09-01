@@ -2,26 +2,251 @@
 set -eu
 
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+plugin_root=$repo_root/plugins/graph
+skills_root=$plugin_root/skills
+skill_src=$skills_root/graph
+design_skill_src=$skills_root/graph-design
+launch=$plugin_root/scripts/launch-graph
 target=${1:-all}
+node_bin=${NODE:-node}
+failures=0
+
+have() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+say() {
+  printf '%s\n' "$*"
+}
+
+warn() {
+  printf 'warn: %s\n' "$*" >&2
+}
+
+note_failure() {
+  failures=$((failures + 1))
+  warn "$1"
+}
+
+install_one_skill() {
+  src=$1
+  dest=$2
+  if [ ! -f "$src/SKILL.md" ]; then
+    note_failure "missing skill source $src/SKILL.md"
+    return 1
+  fi
+  if ! mkdir -p "$dest" 2>/dev/null; then
+    note_failure "cannot create $dest"
+    return 1
+  fi
+  if ! cp "$src/SKILL.md" "$dest/SKILL.md" 2>/dev/null; then
+    note_failure "cannot write $dest/SKILL.md"
+    return 1
+  fi
+  say "Skill installed → $dest"
+}
+
+install_planner_skills() {
+  base=$1
+  install_one_skill "$skill_src" "$base/graph" || return 1
+  install_one_skill "$design_skill_src" "$base/graph-design" || return 1
+}
+
+merge_mcp() {
+  kind=$1
+  config_path=$2
+  if ! "$node_bin" "$repo_root/scripts/merge-host-mcp.mjs" "$kind" "$config_path" graph "$launch"; then
+    note_failure "MCP merge failed for $kind ($config_path)"
+    return 1
+  fi
+}
+
+try_plugin_cli() {
+  label=$1
+  shift
+  if "$@" >/dev/null 2>&1; then
+    say "$label: ok"
+    return 0
+  fi
+  warn "$label failed; falling back to skill + MCP files"
+  return 1
+}
+
+run_host() {
+  name=$1
+  shift
+  say ""
+  say "==> $name"
+  if "$@"; then
+    return 0
+  fi
+  note_failure "$name install reported errors"
+  return 0
+}
 
 install_codex() {
-  codex plugin marketplace add "$repo_root"
-  codex plugin add graph@opengraph
-  printf '%s\n' 'Graph installed for Codex. Start a new session and use $graph <goal>.'
+  if have codex; then
+    try_plugin_cli 'Codex marketplace install' codex plugin marketplace add "$repo_root" \
+      && try_plugin_cli 'Codex plugin add' codex plugin add graph@opengraph \
+      && say 'Codex ready. New session → $graph <goal>' \
+      && return 0
+  else
+    warn 'codex not on PATH'
+  fi
+  install_planner_skills "${HOME}/.codex/skills" || true
+  say 'Codex skill installed when possible. Prefer the Codex plugin marketplace when available.'
 }
 
 install_claude() {
-  claude plugin marketplace add "$repo_root"
-  claude plugin install graph@opengraph --scope user
-  alias_dir=${HOME}/.claude/skills/graph
-  mkdir -p "$alias_dir"
-  cp "$repo_root/plugins/graph/skills/graph/SKILL.md" "$alias_dir/SKILL.md"
-  printf '%s\n' 'Graph installed for Claude Code. Start a new session and use /graph <goal>.'
+  if have claude; then
+    try_plugin_cli 'Claude marketplace install' claude plugin marketplace add "$repo_root" \
+      && try_plugin_cli 'Claude plugin install' claude plugin install graph@opengraph --scope user
+  else
+    warn 'claude not on PATH'
+  fi
+  install_planner_skills "${HOME}/.claude/skills" || true
+  say 'Claude Code ready. New session → /graph <goal> or /graph:graph <goal>'
+}
+
+install_cursor() {
+  install_planner_skills "${HOME}/.cursor/skills" || true
+  install_planner_skills "${HOME}/.agents/skills" || true
+  merge_mcp cursor "${HOME}/.cursor/mcp.json" || true
+  say 'Cursor ready. New Agent session → /graph <goal>'
+}
+
+install_qoder() {
+  if have qoder; then
+    if try_plugin_cli 'Qoder marketplace add' qoder plugins marketplace add "$repo_root"; then
+      try_plugin_cli 'Qoder plugin install' qoder plugins install graph@opengraph --scope user \
+        || try_plugin_cli 'Qoder local plugin install' qoder plugins install "$plugin_root" --scope user
+    else
+      try_plugin_cli 'Qoder local plugin install' qoder plugins install "$plugin_root" --scope user || true
+    fi
+  else
+    warn 'qoder not on PATH'
+  fi
+  install_planner_skills "${HOME}/.qoder/skills" || true
+  install_planner_skills "${HOME}/.agents/skills" || true
+  say 'Qoder ready. New session → /graph <goal> (reload plugins if needed)'
+}
+
+install_zcode() {
+  if have zcode; then
+    try_plugin_cli 'ZCode marketplace add' zcode plugin marketplace add "$repo_root" || true
+  else
+    warn 'zcode not on PATH; installing skill files only'
+  fi
+  install_planner_skills "${HOME}/.zcode/skills" || true
+  install_planner_skills "${HOME}/.agents/skills" || true
+  say 'ZCode ready. Enable the Graph plugin or invoke /graph <goal>'
+}
+
+install_openclaw() {
+  install_planner_skills "${HOME}/.openclaw/skills" || true
+  install_planner_skills "${HOME}/.agents/skills" || true
+  if have openclaw; then
+    if openclaw skills install "$skill_src" --global --as graph >/dev/null 2>&1 \
+      || openclaw skills install "$skill_src" --as graph >/dev/null 2>&1; then
+      say 'OpenClaw skill registered via CLI'
+    fi
+    if openclaw skills install "$design_skill_src" --global --as graph-design >/dev/null 2>&1 \
+      || openclaw skills install "$design_skill_src" --as graph-design >/dev/null 2>&1; then
+      say 'OpenClaw graph-design skill registered via CLI'
+    fi
+    if openclaw mcp add graph --command "$launch" >/dev/null 2>&1 \
+      || openclaw mcp set graph --command "$launch" >/dev/null 2>&1; then
+      say 'OpenClaw MCP registered via CLI'
+    else
+      merge_mcp openclaw "${HOME}/.openclaw/openclaw.json" || true
+    fi
+  else
+    warn 'openclaw not on PATH; writing ~/.openclaw skill + openclaw.json MCP entry'
+    merge_mcp openclaw "${HOME}/.openclaw/openclaw.json" || true
+  fi
+  say 'OpenClaw ready. Invoke the graph skill with your goal'
+}
+
+install_hermes() {
+  install_planner_skills "${HOME}/.hermes/skills/software-development" || true
+  if ! "$node_bin" "$repo_root/scripts/merge-hermes-mcp.mjs" "${HOME}/.hermes/config.yaml" graph "$launch"; then
+    note_failure 'Hermes MCP config merge failed'
+  fi
+  say 'Hermes ready. New session → ask for Graph / invoke the graph skill'
+}
+
+install_kimi() {
+  install_planner_skills "${HOME}/.kimi/skills" || true
+  install_planner_skills "${HOME}/.agents/skills" || true
+  if [ -d "${HOME}/.kimi-code" ]; then
+    merge_mcp kimi "${HOME}/.kimi-code/mcp.json" || true
+  else
+    mkdir -p "${HOME}/.kimi" 2>/dev/null || true
+    merge_mcp kimi "${HOME}/.kimi/mcp.json" || true
+  fi
+  say 'Kimi ready. New session → /skill:graph <goal>'
+}
+
+install_gemini() {
+  install_planner_skills "${HOME}/.gemini/skills" || true
+  install_planner_skills "${HOME}/.agents/skills" || true
+  merge_mcp gemini "${HOME}/.gemini/settings.json" || true
+  if have gemini; then
+    gemini mcp add -s user graph "$launch" >/dev/null 2>&1 || true
+  else
+    warn 'gemini not on PATH; wrote ~/.gemini/settings.json MCP entry when possible'
+  fi
+  say 'Gemini CLI ready. New session → use the graph skill with your goal'
+}
+
+install_qwen() {
+  install_planner_skills "${HOME}/.qwen/skills" || true
+  install_planner_skills "${HOME}/.agents/skills" || true
+  merge_mcp qwen "${HOME}/.qwen/settings.json" || true
+  say 'Qwen Code ready. New session → use the graph skill with your goal'
+}
+
+install_agents() {
+  install_planner_skills "${HOME}/.agents/skills" || true
+  say 'Shared Agent Skills installed → ~/.agents/skills/graph (+ graph-design)'
+}
+
+install_all() {
+  run_host agents install_agents
+  run_host codex install_codex
+  run_host claude install_claude
+  run_host cursor install_cursor
+  run_host qoder install_qoder
+  run_host zcode install_zcode
+  run_host openclaw install_openclaw
+  run_host hermes install_hermes
+  run_host kimi install_kimi
+  run_host gemini install_gemini
+  run_host qwen install_qwen
+  say ''
+  say 'Graph install finished for all known planner hosts.'
+  say 'Start a new agent session, then invoke: /graph <goal>  (or $graph / /skill:graph)'
+  if [ "$failures" -gt 0 ]; then
+    warn "$failures step(s) reported warnings; check paths/permissions above"
+    return 1
+  fi
 }
 
 case "$target" in
   codex) install_codex ;;
   claude) install_claude ;;
-  all) install_codex; install_claude ;;
-  *) printf '%s\n' 'Usage: ./install-graph [codex|claude|all]' >&2; exit 64 ;;
+  cursor) install_cursor ;;
+  qoder) install_qoder ;;
+  zcode|zode) install_zcode ;;
+  openclaw) install_openclaw ;;
+  hermes) install_hermes ;;
+  kimi) install_kimi ;;
+  gemini) install_gemini ;;
+  qwen) install_qwen ;;
+  agents) install_agents ;;
+  all) install_all ;;
+  *)
+    printf '%s\n' 'Usage: ./install-graph [all|codex|claude|cursor|qoder|zcode|openclaw|hermes|kimi|gemini|qwen|agents]' >&2
+    exit 64
+    ;;
 esac

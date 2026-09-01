@@ -4,13 +4,19 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.15.0",
-  "pnpm": { "onlyBuiltDependencies": ["better-sqlite3"] },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
+  },
   "scripts": {
     "dev": "pnpm --parallel --filter @graph-engineer/daemon --filter @graph-engineer/web dev",
     "dev:web": "pnpm --filter @graph-engineer/web dev",
     "build": "pnpm -r build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write \"apps/**/*.{ts,tsx}\" \"packages/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\" \"scripts/**/*.{js,mjs,ts}\" \"*.{ts,mjs,json}\"",
+    "format:check": "prettier --check \"apps/**/*.{ts,tsx}\" \"packages/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\" \"scripts/**/*.{js,mjs,ts}\" \"*.{ts,mjs,json}\"",
     "test": "vitest run",
     "e2e": "playwright test",
     "graphctl": "tsx apps/cli/src/index.ts",
@@ -33,13 +39,15 @@
   "devDependencies": {
     "@eslint/js": "^9.34.0",
     "@playwright/test": "^1.55.0",
-    "@types/node": "^24.3.0",
     "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^24.3.0",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "@typescript-eslint/eslint-plugin": "^8.41.0",
     "@typescript-eslint/parser": "^8.41.0",
+    "esbuild": "^0.28.2",
     "eslint": "^9.34.0",
+    "prettier": "^3.9.6",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"

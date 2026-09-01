@@ -1,0 +1,29 @@
+export const lintCodes = [
+  "INVALID_GRAPH_SPEC",
+  "DUPLICATE_NODE_ID",
+  "ORPHAN_NODE",
+  "UNKNOWN_EDGE_SOURCE",
+  "UNKNOWN_EDGE_TARGET",
+  "MISSING_INPUT_PRODUCER",
+  "UNUSED_OUTPUT",
+  "FAKE_EDGE_NO_ARTIFACT",
+  "UNBOUNDED_CYCLE",
+  "NODE_RESPONSIBILITY_TOO_BROAD",
+  "PARALLEL_WRITESET_CONFLICT",
+  "MISSING_ACCEPTANCE_CHECK",
+  "MISSING_VERIFIER",
+  "MISSING_SUPERVISOR_PATH",
+  "THAWED_ACCEPTANCE",
+  "WIDTH_BUDGET_EXCEEDED",
+  "INVALID_APPROVAL_BOUNDARY",
+  "INVALID_RETRY_POLICY",
+] as const;
+
+export type LintCode = (typeof lintCodes)[number];
+
+export type LintIssue = {
+  code: LintCode | "SINGLE_AGENT_RECOMMENDED";
+  severity: "error" | "warning";
+  message: string;
+  nodeIds?: string[];
+};

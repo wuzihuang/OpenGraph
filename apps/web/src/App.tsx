@@ -1,53 +1,106 @@
-import { Background, Controls, Handle, MarkerType, Position, ReactFlow, type Edge, type Node, type NodeProps } from '@xyflow/react';
-import { Activity, Bot, Braces, Check, CheckCircle2, CircleDot, Clock3, GitBranch, Network, PanelRightOpen, Pause, Play, RotateCcw, Search, ShieldCheck, Sparkles, Square, TerminalSquare, Users, WifiOff, X } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-type GraphNode={id:string;title:string;kind:string;objective:string;agentSelector:{preferredAgents:string[]};workspace:{mode:string;readGlobs:string[];writeGlobs:string[]};inputs:string[];outputs:{name:string;type:string}[];acceptanceChecks:{type:string;command?:string;description:string}[];retryPolicy:{maxAttempts:number};timeoutSeconds:number;verifierPolicy:{required:boolean;freshSession:boolean;readonly:boolean}};
-type GraphSpec={goal:string;version:string;repository?:{root:string;baseRef:string};policies:{maxParallel:number;networkPolicy?:string;nestedSubagents?:boolean;approvalPolicy?:string;maxNodeAttempts?:number;maxRuntimeSeconds?:number};nodes:GraphNode[];edges:{from:string;to:string;artifacts:string[]}[]};type Event={sequence:number;type:string;nodeId:string|null;attempt:number;agentSessionId:string|null;payload:Record<string,any>};
-type CardData={title:string;subtitle:string;kind:string;agent:string;status:string;accent:string;outputs:string[]};
-type GraphPosition={x:number;y:number};
-type WorkspaceView='graph'|'activity'|'agents'|'security';
-const fallback:GraphSpec={goal:'Ship Graph Engineer vertical slice',version:'1.0',policies:{maxParallel:2},nodes:[
-  {id:'analyze_repo',title:'Map repository',kind:'analysis',objective:'Inspect rules, commands and module boundaries.',agentSelector:{preferredAgents:['Codex']},workspace:{mode:'readonly',readGlobs:['**'],writeGlobs:[]},inputs:['repo'],outputs:[{name:'repo-map.json',type:'json'}],acceptanceChecks:[{type:'artifact',description:'Map exists'}],retryPolicy:{maxAttempts:1},timeoutSeconds:20,verifierPolicy:{required:false,freshSession:true,readonly:true}},
-  {id:'implement_runtime',title:'Runtime & recovery',kind:'worker',objective:'Persist scheduling, retries and checkpoints.',agentSelector:{preferredAgents:['Claude']},workspace:{mode:'worktree',readGlobs:['**'],writeGlobs:['packages/graph-runtime/**']},inputs:['repo-map.json'],outputs:[{name:'runtime.patch',type:'git_patch'}],acceptanceChecks:[{type:'command',command:'pnpm test runtime',description:'Tests'}],retryPolicy:{maxAttempts:2},timeoutSeconds:120,verifierPolicy:{required:true,freshSession:true,readonly:true}},
-  {id:'implement_dashboard',title:'Review dashboard',kind:'worker',objective:'Build graph review and live run evidence.',agentSelector:{preferredAgents:['Codex']},workspace:{mode:'worktree',readGlobs:['**'],writeGlobs:['apps/web/**']},inputs:['repo-map.json'],outputs:[{name:'dashboard.patch',type:'git_patch'}],acceptanceChecks:[{type:'command',command:'pnpm test web',description:'Tests'}],retryPolicy:{maxAttempts:2},timeoutSeconds:120,verifierPolicy:{required:true,freshSession:true,readonly:true}},
-  {id:'integrate',title:'Integrate artifacts',kind:'integration',objective:'Merge isolated worktrees and resolve contracts.',agentSelector:{preferredAgents:['Mock ACP']},workspace:{mode:'integration',readGlobs:['**'],writeGlobs:['src/**']},inputs:['runtime.patch','dashboard.patch'],outputs:[{name:'integration.diff',type:'diff'}],acceptanceChecks:[{type:'artifact',description:'Diff'}],retryPolicy:{maxAttempts:1},timeoutSeconds:60,verifierPolicy:{required:true,freshSession:true,readonly:true}},
-  {id:'fresh_verify',title:'Fresh verification',kind:'verifier',objective:'Reject results without sufficient evidence.',agentSelector:{preferredAgents:['Fresh session']},workspace:{mode:'readonly',readGlobs:['**'],writeGlobs:[]},inputs:['integration.diff'],outputs:[{name:'verification.json',type:'json'}],acceptanceChecks:[{type:'artifact',description:'Verified'}],retryPolicy:{maxAttempts:1},timeoutSeconds:60,verifierPolicy:{required:false,freshSession:true,readonly:true}}
-],edges:[{from:'analyze_repo',to:'implement_runtime',artifacts:['repo-map.json']},{from:'analyze_repo',to:'implement_dashboard',artifacts:['repo-map.json']},{from:'implement_runtime',to:'integrate',artifacts:['runtime.patch']},{from:'implement_dashboard',to:'integrate',artifacts:['dashboard.patch']},{from:'integrate',to:'fresh_verify',artifacts:['integration.diff']}]};
-function GraphCard({data,selected}:NodeProps<Node<CardData>>){return <div className={`node-card ${selected?'selected':''} state-${data.status}`} style={{'--accent':data.accent} as CSSProperties}><Handle type="target" position={Position.Left} className="port"/><div className="node-top"><span className="node-kind"><CircleDot size={11}/>{data.kind}</span><span className={`status-dot ${data.status}`}/></div><h3>{data.title}</h3><p>{data.subtitle}</p><div className="node-agent"><Bot size={13}/><span>{data.agent}</span><span className="node-time"><Clock3 size={11}/>{data.status==='running'?'live':'~2m'}</span></div><div className="outputs">{data.outputs.map(output=><span key={output}>{output}</span>)}</div><Handle type="source" position={Position.Right} className="port"/></div>}
-export function layoutGraphNodes(nodes:GraphNode[],edges:GraphSpec['edges']):Record<string,GraphPosition>{
-  const nodeIds=new Set(nodes.map(node=>node.id)),indegree=new Map(nodes.map(node=>[node.id,0])),depth=new Map(nodes.map(node=>[node.id,0])),successors=new Map(nodes.map(node=>[node.id,[] as string[]]));
-  for(const edge of edges){if(!nodeIds.has(edge.from)||!nodeIds.has(edge.to)||edge.from===edge.to)continue;successors.get(edge.from)!.push(edge.to);indegree.set(edge.to,(indegree.get(edge.to)??0)+1)}
-  const queue=nodes.filter(node=>indegree.get(node.id)===0).map(node=>node.id);
-  for(let cursor=0;cursor<queue.length;cursor++){const source=queue[cursor]!;for(const target of successors.get(source)??[]){depth.set(target,Math.max(depth.get(target)??0,(depth.get(source)??0)+1));const remaining=(indegree.get(target)??1)-1;indegree.set(target,remaining);if(remaining===0)queue.push(target)}}
-  const layers=new Map<number,GraphNode[]>();for(const node of nodes){const layer=depth.get(node.id)??0;layers.set(layer,[...(layers.get(layer)??[]),node])}
-  const maxRows=Math.max(1,...[...layers.values()].map(layer=>layer.length)),positions:Record<string,GraphPosition>={};
-  for(const [layer,layerNodes] of layers){const verticalOffset=(maxRows-layerNodes.length)*145;layerNodes.forEach((node,row)=>{positions[node.id]={x:40+layer*340,y:170+verticalOffset+row*290}})}
-  return positions;
+import { useDashboardController } from "./dashboard-controller.ts";
+import { useDashboardGraphModel } from "./graph-model.ts";
+import { Inspector } from "./Inspector.tsx";
+import { Toolbar } from "./Toolbar.tsx";
+import { Workspace } from "./Workspace.tsx";
+
+export { layoutGraphNodes } from "./graph.tsx";
+
+export function App() {
+  const dashboard = useDashboardController();
+  const graph = useDashboardGraphModel({
+    spec: dashboard.spec,
+    graphId: dashboard.graphId,
+    mode: dashboard.mode,
+    selected: dashboard.selected,
+    searchQuery: dashboard.searchQuery,
+    events: dashboard.events,
+    statuses: dashboard.statuses,
+    validation: dashboard.validation,
+  });
+
+  if (!graph.active) return null;
+
+  return (
+    <main className="app-shell">
+      <Toolbar
+        mode={dashboard.mode}
+        spec={dashboard.spec}
+        runId={dashboard.runId}
+        runStatus={dashboard.runStatus}
+        validationIssueCount={dashboard.validation.issues.length}
+        errorCount={graph.errorCount}
+        approving={dashboard.approving}
+        searchOpen={dashboard.searchOpen}
+        searchQuery={dashboard.searchQuery}
+        searchResults={graph.searchResults}
+        onModeChange={dashboard.setMode}
+        onStartOrShowRun={function startRun() {
+          void dashboard.startOrShowRun();
+        }}
+        onApprove={function approveRun() {
+          void dashboard.approve();
+        }}
+        onReject={function rejectRun() {
+          void dashboard.reject();
+        }}
+        onRunAction={function runAction(action) {
+          void dashboard.performRunAction(action);
+        }}
+        onSearchOpenChange={dashboard.setSearchOpen}
+        onSearchQueryChange={dashboard.setSearchQuery}
+        onSelectNode={dashboard.selectNode}
+      />
+      {dashboard.notice && (
+        <div className="notice" role="status">
+          {dashboard.notice}
+        </div>
+      )}
+      <section
+        className={`workspace ${
+          dashboard.inspectorOpen ? "" : "inspector-closed"
+        }`}
+      >
+        <Workspace
+          mode={dashboard.mode}
+          graphId={dashboard.graphId}
+          spec={dashboard.spec}
+          view={dashboard.workspaceView}
+          inspectorOpen={dashboard.inspectorOpen}
+          graph={graph}
+          events={dashboard.events}
+          statuses={dashboard.statuses}
+          onViewChange={dashboard.setWorkspaceView}
+          onSelectNode={dashboard.selectNode}
+          onOpenInspector={function reopenInspector() {
+            dashboard.setInspectorOpen(true);
+          }}
+        />
+        {dashboard.inspectorOpen && (
+          <Inspector
+            active={graph.active}
+            panel={dashboard.panel}
+            agentOptions={graph.agentOptions}
+            nodeEvents={graph.nodeEvents}
+            runUnavailable={!dashboard.runId}
+            validationValid={dashboard.validation.valid}
+            onClose={function closeInspector() {
+              dashboard.setInspectorOpen(false);
+            }}
+            onPanelChange={dashboard.setPanel}
+            onUpdateActive={dashboard.updateActive}
+            onSaveAmendment={function saveGraphAmendment() {
+              void dashboard.saveAmendment();
+            }}
+            onReassign={function reassignNode() {
+              void dashboard.reassignActiveNode();
+            }}
+            onRetry={function retryNode() {
+              void dashboard.retryActiveNode();
+            }}
+          />
+        )}
+      </section>
+    </main>
+  );
 }
-function OverviewPage({view,spec,events,statuses,onSelect}:{view:Exclude<WorkspaceView,'graph'>;spec:GraphSpec;events:Event[];statuses:Record<string,string>;onSelect:(id:string)=>void}){
-  const statusCounts=spec.nodes.reduce<Record<string,number>>((counts,node)=>{const status=statuses[node.id]??'ready';counts[status]=(counts[status]??0)+1;return counts},{});
-  if(view==='activity')return <div className="overview-page"><div className="overview-heading"><span>ACTIVITY</span><h1>Execution timeline</h1><p>Live node state and persisted run events in one place.</p></div><div className="overview-grid"><article className="metric-card"><Activity size={17}/><strong>{events.length}</strong><span>recorded events</span></article><article className="metric-card"><CheckCircle2 size={17}/><strong>{statusCounts.succeeded??0}</strong><span>succeeded nodes</span></article><article className="metric-card"><Clock3 size={17}/><strong>{statusCounts.running??0}</strong><span>running now</span></article></div><div className="overview-list"><h2>Recent activity</h2>{events.length?[...events].reverse().slice(0,12).map(event=><button key={event.sequence} disabled={!event.nodeId} onClick={()=>event.nodeId&&onSelect(event.nodeId)}><span><strong>{event.type}</strong><small>{event.nodeId??'Run'} · attempt {event.attempt}</small></span><code>#{event.sequence}</code></button>):<div className="overview-empty"><WifiOff size={18}/><strong>No run activity yet</strong><span>Approve the graph to start a run. Events will appear here live.</span></div>}</div></div>;
-  if(view==='agents'){const agents=new Map<string,GraphNode[]>();for(const node of spec.nodes){const name=node.agentSelector.preferredAgents[0]??'Auto';agents.set(name,[...(agents.get(name)??[]),node])}return <div className="overview-page"><div className="overview-heading"><span>AGENTS</span><h1>Agent assignments</h1><p>See ownership across the graph and jump directly to a node configuration.</p></div><div className="agent-grid">{[...agents].map(([agent,nodes])=><article className="overview-card" key={agent}><div className="overview-card-title"><Bot size={17}/><div><strong>{agent}</strong><span>{nodes.length} node{nodes.length===1?'':'s'}</span></div></div>{nodes.map(node=><button key={node.id} onClick={()=>onSelect(node.id)}><span>{node.title}</span><small>{node.kind} · {statuses[node.id]??'ready'}</small></button>)}</article>)}</div></div>}
-  const writeNodes=spec.nodes.filter(node=>node.workspace.writeGlobs.length),readonlyNodes=spec.nodes.length-writeNodes.length;
-  return <div className="overview-page"><div className="overview-heading"><span>SECURITY</span><h1>Execution boundaries</h1><p>Repository access and run policies derived from this graph specification.</p></div><div className="security-grid"><article className="overview-card"><Network size={18}/><span>Network policy</span><strong>{spec.policies.networkPolicy??'Inherited'}</strong><small>Applied to every agent session.</small></article><article className="overview-card"><ShieldCheck size={18}/><span>Approval</span><strong>{spec.policies.approvalPolicy??'Human required'}</strong><small>Execution stays locked during review.</small></article><article className="overview-card"><Users size={18}/><span>Nested agents</span><strong>{spec.policies.nestedSubagents?'Allowed':'Disabled'}</strong><small>Sub-agent delegation policy.</small></article></div><div className="access-summary"><h2>Workspace access</h2><div><span><strong>{readonlyNodes}</strong> read-only nodes</span><span><strong>{writeNodes.length}</strong> write-enabled nodes</span><span><strong>{spec.policies.maxParallel}</strong> max parallel</span></div>{spec.nodes.map(node=><button key={node.id} onClick={()=>onSelect(node.id)}><span>{node.title}</span><small>{node.workspace.mode} · {node.workspace.writeGlobs.length?`${node.workspace.writeGlobs.length} write scope(s)`:'no writes'}</small></button>)}</div></div>;
-}
-export function App(){const params=new URLSearchParams(location.search),token=params.get('token')??'',initialGraph=params.get('graph');const headers={authorization:`Bearer ${token}`};const jsonHeaders={...headers,'content-type':'application/json'};const [spec,setSpec]=useState<GraphSpec>(fallback),[graphId,setGraphId]=useState(initialGraph),[runId,setRunId]=useState(params.get('run')),[mode,setMode]=useState<'review'|'run'>(params.get('run')?'run':'review'),[selected,setSelected]=useState('implement_runtime'),[events,setEvents]=useState<Event[]>([]),[statuses,setStatuses]=useState<Record<string,string>>({}),[validation,setValidation]=useState<{valid:boolean;issues:any[]}>({valid:true,issues:[]}),[panel,setPanel]=useState<'configure'|'activity'|'evidence'>('configure'),[runStatus,setRunStatus]=useState('awaiting_approval'),[workspaceView,setWorkspaceView]=useState<WorkspaceView>('graph'),[inspectorOpen,setInspectorOpen]=useState(true),[searchOpen,setSearchOpen]=useState(false),[searchQuery,setSearchQuery]=useState(''),[notice,setNotice]=useState<string|null>(null);const lastSequence=useRef(0),nodeTypes=useMemo(()=>({graphCard:GraphCard}),[]);
-  const loadGraph=useCallback(async(id:string)=>{const response=await fetch(`/api/graphs/${id}`,{headers});if(response.ok){const graph=await response.json();if(graph.spec)setSpec(graph.spec)}},[token]);useEffect(()=>{if(graphId)void loadGraph(graphId)},[graphId,loadGraph]);
-  useEffect(()=>{if(!runId)return;let socket:WebSocket|undefined,closed=false,timer:number;const ingest=(event:Event)=>{lastSequence.current=Math.max(lastSequence.current,event.sequence);setEvents(current=>current.some(item=>item.sequence===event.sequence)?current:[...current,event]);if(event.nodeId&&(event.type==='node.status'||event.type==='node.ready'))setStatuses(current=>({...current,[event.nodeId!]:String(event.payload.status??'ready')}));if(event.type==='run.completed')setRunStatus('completed');if(event.type==='run.failed')setRunStatus('failed')};const connect=()=>{const protocol=location.protocol==='https:'?'wss':'ws';socket=new WebSocket(`${protocol}://${location.host}/ws/runs/${runId}?token=${encodeURIComponent(token)}&since=${lastSequence.current}`);socket.onmessage=message=>ingest(JSON.parse(message.data));socket.onclose=()=>{if(!closed)timer=window.setTimeout(connect,450)}};const poll=window.setInterval(async()=>{try{const [eventResponse,runResponse]=await Promise.all([fetch(`/api/runs/${runId}/events?after=${lastSequence.current}`,{headers}),fetch(`/api/runs/${runId}`,{headers})]);if(eventResponse.ok)for(const event of await eventResponse.json())ingest(event);if(runResponse.ok){const row=await runResponse.json();setRunStatus(row.status)}}catch{}},250);connect();return()=>{closed=true;clearTimeout(timer);clearInterval(poll);socket?.close()}},[runId,token]);
-  const validate=async(next:GraphSpec)=>{setSpec(next);try{const result=await fetch('/api/graphs/validate',{method:'POST',headers:jsonHeaders,body:JSON.stringify(next)});if(result.ok)setValidation(await result.json())}catch{setValidation({valid:true,issues:[]})}};
-  const approve=async()=>{if(!graphId){const created=await fetch('/api/graphs/demo',{method:'POST',headers});const data=await created.json();setGraphId(data.graphId);setSpec(fallback);return}const response=await fetch(`/api/graphs/${graphId}/approve`,{method:'POST',headers});const data=await response.json();setRunId(data.runId);setMode('run');setRunStatus('running');history.replaceState(null,'',`?token=${encodeURIComponent(token)}&graph=${graphId}&run=${data.runId}`)};
-  const reject=async()=>{if(graphId)await fetch(`/api/graphs/${graphId}/reject`,{method:'POST',headers});setRunStatus('rejected')};const saveAmendment=async()=>{if(!graphId||!validation.valid)return;try{const response=await fetch(`/api/graphs/${graphId}/amend`,{method:'POST',headers:jsonHeaders,body:JSON.stringify({spec})});if(!response.ok)throw new Error();await loadGraph(graphId);setNotice('Graph version saved')}catch{setNotice('Could not save graph version')}};
-  const runAction=async(action:string)=>{if(!runId)return;await fetch(`/api/runs/${runId}/${action}`,{method:'POST',headers});setRunStatus(action==='cancel'?'cancelled':action==='pause'?'paused':'running')};const active=spec.nodes.find(node=>node.id===selected)??spec.nodes[0]!;
-  useEffect(()=>{if(!notice)return;const timer=window.setTimeout(()=>setNotice(null),2600);return()=>clearTimeout(timer)},[notice]);
-  const selectNode=(id:string)=>{setSelected(id);setWorkspaceView('graph');setInspectorOpen(true);setSearchOpen(false);setSearchQuery('')};
-  const updateActive=(change:Partial<GraphNode>)=>{const nodes=spec.nodes.map(node=>node.id===active.id?{...node,...change}:node);void validate({...spec,nodes})};
-  const agentOptions=useMemo(()=>['Auto',...new Set(spec.nodes.flatMap(node=>node.agentSelector.preferredAgents))],[spec.nodes]);
-  const searchResults=spec.nodes.filter(node=>`${node.title} ${node.id} ${node.kind} ${node.objective}`.toLowerCase().includes(searchQuery.trim().toLowerCase()));
-  const layout=useMemo(()=>layoutGraphNodes(spec.nodes,spec.edges),[spec.nodes,spec.edges]);const flowNodes:Node<CardData>[]=spec.nodes.map(node=>({id:node.id,type:'graphCard',position:layout[node.id]!,data:{title:node.title,subtitle:node.objective,kind:node.kind.toUpperCase(),agent:node.agentSelector.preferredAgents[0]??'Auto',status:statuses[node.id]??(mode==='review'?'ready':'pending'),accent:statuses[node.id]==='succeeded'?'#58a338':node.kind==='worker'?'#1237da':'#8f8f8b',outputs:node.outputs.map(output=>output.name)}}));const flowEdges:Edge[]=spec.edges.map((edge,index)=>({id:`e${index}`,source:edge.from,target:edge.to,label:edge.artifacts.join(' + '),animated:edge.artifacts.every(name=>events.some(event=>event.type==='artifact.created'&&event.payload.name===name)),markerEnd:{type:MarkerType.ArrowClosed,color:'#4c68e8'},style:{stroke:'#3f59d2',strokeWidth:1.5},labelStyle:{fill:'#a9b4e9',fontSize:10,fontWeight:600},labelBgStyle:{fill:'#101218',fillOpacity:.95},labelBgPadding:[7,4]}));const nodeEvents=events.filter(event=>event.nodeId===active.id),errors=validation.issues.filter(issue=>issue.severity==='error').length,flowKey=`${graphId??'local'}:${spec.nodes.map(node=>node.id).join('|')}`,runUnavailable=!runId,runTerminal=['completed','failed','cancelled'].includes(runStatus);
-  return <main className="app-shell"><header className="topbar"><div className="brand"><span className="brand-mark"><Braces size={16}/></span><strong>Graph Engineer</strong><span className="project-pill">{spec.repository?.root.split('/').filter(Boolean).pop()??'sample-repo'} · {spec.repository?.baseRef??'draft'}</span></div><nav className="mode-switch"><button className={mode==='review'?'active':''} onClick={()=>setMode('review')}>Review</button><button className={mode==='run'?'active':''} onClick={()=>setMode('run')} disabled={runUnavailable} title={runUnavailable?'Approve the graph to start a run':undefined}>Run</button></nav><div className="top-actions"><span className={`validation ${errors?'has-errors':''}`}>{errors?<X size={12}/>:<Check size={12}/>} {errors} errors · {validation.issues.length-errors} warnings</span><div className="search-wrap"><button className={`icon-button ${searchOpen?'active':''}`} aria-label="Search nodes" aria-expanded={searchOpen} onClick={()=>setSearchOpen(open=>!open)}><Search size={15}/></button>{searchOpen&&<div className="search-popover"><div className="search-input"><Search size={14}/><input autoFocus type="search" placeholder="Search nodes…" value={searchQuery} onChange={event=>setSearchQuery(event.target.value)} onKeyDown={event=>{if(event.key==='Escape')setSearchOpen(false)}}/></div><div className="search-results">{searchResults.map(node=><button key={node.id} onClick={()=>selectNode(node.id)}><span>{node.title}</span><small>{node.kind} · {node.id}</small></button>)}{!searchResults.length&&<p>No matching nodes</p>}</div></div>}</div>{mode==='review'?<><button className="reject" onClick={reject}>Reject</button><button className="approve" onClick={approve} disabled={errors>0}><Play size={14}/>Approve graph</button></>:<><span className={`run-pill ${runStatus}`}>{runStatus}</span><button className="icon-button" disabled={runUnavailable||runTerminal} title={runUnavailable?'No active run':undefined} onClick={()=>runAction(runStatus==='paused'?'resume':'pause')} aria-label={runStatus==='paused'?'Resume':'Pause'}>{runStatus==='paused'?<Play size={14}/>:<Pause size={14}/>}</button><button className="cancel" disabled={runUnavailable||runTerminal} title={runUnavailable?'No active run':undefined} onClick={()=>runAction('cancel')}><Square size={12}/>Cancel</button></>}</div></header>{notice&&<div className="notice" role="status">{notice}</div>}
-    <section className={`workspace ${inspectorOpen?'':'inspector-closed'}`}><aside className="rail"><button className={workspaceView==='graph'?'active':''} aria-label="Graph" onClick={()=>setWorkspaceView('graph')}><GitBranch size={18}/></button><button className={workspaceView==='activity'?'active':''} aria-label="Activity" onClick={()=>setWorkspaceView('activity')}><Activity size={18}/></button><button className={workspaceView==='agents'?'active':''} aria-label="Agents" onClick={()=>setWorkspaceView('agents')}><Bot size={18}/></button><span/><button className={workspaceView==='security'?'active':''} aria-label="Security" onClick={()=>setWorkspaceView('security')}><ShieldCheck size={18}/></button></aside><div className="canvas">{workspaceView==='graph'?<><div className="canvas-heading"><span>{mode==='review'?'DRAFT':'RUN'} / {graphId?.slice(-6)??'LOCAL'}</span><h1>{spec.goal}</h1><p>{spec.nodes.length} nodes · max {spec.policies.maxParallel} parallel · version {spec.version}</p></div><ReactFlow key={flowKey} nodes={flowNodes} edges={flowEdges} nodeTypes={nodeTypes} onNodeClick={(_,node)=>selectNode(node.id)} fitView fitViewOptions={{padding:.16,minZoom:.4,maxZoom:1}} minZoom={.4} maxZoom={1.6} defaultEdgeOptions={{type:'smoothstep'}}><Background color="#252626" gap={24} size={1}/><Controls position="bottom-left" showInteractive={false}/></ReactFlow>{mode==='review'&&<div className="approval-boundary"><ShieldCheck size={13}/>Execution locked until human approval</div>}</>:<OverviewPage view={workspaceView} spec={spec} events={events} statuses={statuses} onSelect={selectNode}/>} {!inspectorOpen&&<button className="inspector-reopen" onClick={()=>setInspectorOpen(true)}><PanelRightOpen size={14}/>Open inspector</button>}</div>
-    {inspectorOpen&&<aside className="inspector"><div className="inspector-head"><div><span>NODE INSPECTOR</span><h2>{active.title}</h2></div><button aria-label="Close inspector" onClick={()=>setInspectorOpen(false)}><X size={16}/></button></div><div className="tabs"><button className={panel==='configure'?'active':''} onClick={()=>setPanel('configure')}>Configure</button><button className={panel==='activity'?'active':''} onClick={()=>setPanel('activity')}>Activity</button><button className={panel==='evidence'?'active':''} onClick={()=>setPanel('evidence')}>Evidence</button></div>
-      {panel==='configure'&&<><section><label htmlFor="agent-select">Agent</label><select id="agent-select" className="field field-select" value={active.agentSelector.preferredAgents[0]??'Auto'} onChange={event=>updateActive({agentSelector:{preferredAgents:event.target.value==='Auto'?[]:[event.target.value]}})}>{agentOptions.map(agent=><option key={agent}>{agent}</option>)}</select></section><section><label htmlFor="objective">Prompt / objective</label><textarea id="objective" value={active.objective} onChange={event=>updateActive({objective:event.target.value})}/><button className="save-amendment" onClick={saveAmendment} disabled={!validation.valid}>Save as new graph version</button></section><div className="split"><section><label htmlFor="retries">Retries</label><input id="retries" className="field numeric-field" type="number" min="1" max="10" value={active.retryPolicy.maxAttempts} onChange={event=>updateActive({retryPolicy:{...active.retryPolicy,maxAttempts:Number(event.target.value)}})}/></section><section><label htmlFor="timeout">Timeout (sec)</label><input id="timeout" className="field numeric-field" type="number" min="5" max="86400" value={active.timeoutSeconds} onChange={event=>updateActive({timeoutSeconds:Number(event.target.value)})}/></section></div><section><label>Input contract</label><div className="code-field">{active.inputs.map(input=><code key={input}>{input}</code>)}</div></section><section><label>Read / write globs</label><div className="code-field">{active.workspace.readGlobs.map(value=><code key={`r${value}`}>R {value}</code>)}{active.workspace.writeGlobs.map(value=><code key={`w${value}`}>W {value}</code>)}</div></section><section><label>Output contract</label>{active.outputs.map(output=><div className="contract" key={output.name}><span><Sparkles size={13}/>{output.name}</span><small>{output.type} · required</small></div>)}</section><section><label>Verifier</label><button className="verifier verifier-button" role="switch" aria-checked={active.verifierPolicy.required} onClick={()=>updateActive({verifierPolicy:{...active.verifierPolicy,required:!active.verifierPolicy.required}})}><ShieldCheck size={16}/><span><strong>{active.verifierPolicy.required?(active.verifierPolicy.freshSession?'Fresh session':'Required'):'Not required'}</strong><small>{active.verifierPolicy.readonly?'Read-only · diff + tests only':'Worker context'}</small></span><i className={`toggle ${active.verifierPolicy.required?'on':''}`}/></button></section><section className="checks"><label>Acceptance checks</label>{active.acceptanceChecks.map((check,index)=><p key={index}><TerminalSquare size={13}/><code>{check.command??check.description}</code></p>)}</section></>}
-      {panel==='activity'&&<section className="event-list"><div className="activity-actions"><button disabled={runUnavailable} title={runUnavailable?'Approve the graph to start a run':undefined} onClick={()=>runId&&fetch(`/api/runs/${runId}/nodes/${active.id}/reassign`,{method:'POST',headers:jsonHeaders,body:JSON.stringify({agent:'mock'})})}><Bot size={12}/>Reassign agent</button><button disabled={runUnavailable} title={runUnavailable?'Approve the graph to start a run':undefined} onClick={()=>runId&&fetch(`/api/runs/${runId}/nodes/${active.id}/retry`,{method:'POST',headers})}><RotateCcw size={12}/>Retry node</button></div><label>Live agent activity</label>{nodeEvents.length?nodeEvents.map(event=><article key={event.sequence}><span>{event.type}</span><small>attempt {event.attempt} · #{event.sequence}</small><pre>{JSON.stringify(event.payload,null,2)}</pre></article>):<div className="empty-evidence">No activity yet. Events replay here after reconnect.</div>}</section>}
-      {panel==='evidence'&&<section className="evidence-grid">{['Plan','Tool calls','Terminal','Diff','Tests','Artifacts','Attempts'].map(kind=><article key={kind}><label>{kind}</label><strong>{nodeEvents.filter(event=>event.type.toLowerCase().includes(kind.split(' ')[0]!.toLowerCase())||kind==='Attempts').length}</strong><small>{kind==='Attempts'?`${Math.max(0,...nodeEvents.map(event=>event.attempt))} recorded`:'persisted events'}</small></article>)}</section>}
-    </aside>}</section></main>}
