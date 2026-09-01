@@ -1,4 +1,4 @@
-# Graph Engineer v0.1 Implementation Plan
+# OpenGraph v0.1 Implementation Plan
 
 ## Phase 0 — executable local loop
 

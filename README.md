@@ -1,6 +1,6 @@
 <div align="center">
 
-# Graph Engineer
+# OpenGraph
 
 ### Turn one coding goal into a validated, reviewable execution graph.
 
@@ -13,9 +13,9 @@
 
 </div>
 
-![Graph Engineer Dashboard](artifacts/graph-dashboard-browser-after-1512x1018.png)
+![OpenGraph Dashboard](artifacts/graph-dashboard-browser-after-1512x1018.png)
 
-Graph Engineer packages a deterministic graph compiler, an approval-gated runtime, and a live Dashboard into one installable **Graph** plugin for Codex and Claude Code. The host model plans; deterministic code validates; you remain the approval boundary.
+OpenGraph packages a deterministic graph compiler, an approval-gated runtime, and a live Dashboard into one installable **Graph** plugin for Codex and Claude Code. The host model plans; deterministic code validates; you remain the approval boundary.
 
 ```text
 install → $graph <goal> → validated Draft → Dashboard review → human approval → execution
@@ -39,8 +39,8 @@ Coding agents are excellent workers, but complex tasks still need explicit depen
 ### Codex
 
 ```bash
-codex plugin marketplace add wuzihuang/graph-engineer
-codex plugin add graph@graph-engineer
+codex plugin marketplace add wuzihuang/opengraph
+codex plugin add graph@opengraph
 ```
 
 Start a new Codex session, then run:
@@ -54,8 +54,8 @@ You can also choose **Graph** from the Codex plugin picker with `@Graph`.
 ### Claude Code
 
 ```bash
-claude plugin marketplace add wuzihuang/graph-engineer
-claude plugin install graph@graph-engineer --scope user
+claude plugin marketplace add wuzihuang/opengraph
+claude plugin install graph@opengraph --scope user
 ```
 
 Start a new Claude Code session, then run:
@@ -69,8 +69,8 @@ If you clone the repository and use `./install-graph claude`, Graph also install
 ### Local installer
 
 ```bash
-git clone https://github.com/wuzihuang/graph-engineer.git
-cd graph-engineer
+git clone https://github.com/wuzihuang/opengraph.git
+cd opengraph
 ./install-graph codex   # or: claude / all
 ```
 
@@ -205,7 +205,7 @@ pnpm plugin:build  # self-contained plugin runtime bundle
 
 ## Project status
 
-Graph Engineer is an early, working local-first implementation. The plugin, compiler, runtime, Dashboard, persistence layer, recovery path, test suite, Codex marketplace, and Claude Code marketplace are implemented. Production agent adapters beyond the included mock/demo path remain an active area of development.
+OpenGraph is an early, working local-first implementation. The plugin, compiler, runtime, Dashboard, persistence layer, recovery path, test suite, Codex marketplace, and Claude Code marketplace are implemented. Production agent adapters beyond the included mock/demo path remain an active area of development.
 
 ---
 

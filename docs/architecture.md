@@ -1,6 +1,6 @@
-# Graph Engineer Architecture
+# OpenGraph Architecture
 
-Graph Engineer is a local-first Graph Engineering compiler and runtime. A host model may create only declarative `GraphSpecV1` JSON. Deterministic code validates, versions, compiles, approves, executes, persists, and observes that specification.
+OpenGraph is a local-first Graph Engineering compiler and runtime. A host model may create only declarative `GraphSpecV1` JSON. Deterministic code validates, versions, compiles, approves, executes, persists, and observes that specification.
 
 ## Trust boundaries
 
@@ -41,4 +41,3 @@ Every normalized event is committed before WebSocket broadcast. Reconnecting cli
 ## Safety model
 
 The daemon binds to `127.0.0.1`, requires a random local session token, passes an allowlisted environment to child processes, redacts common secret shapes, never persists agent credentials, uses argument arrays, and cancels ACP before terminating the whole process group. Network, package installation, publishing, pushing, deletion, payment, and other irreversible operations require explicit approval.
-

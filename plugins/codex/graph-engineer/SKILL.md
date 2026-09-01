@@ -1,11 +1,11 @@
 ---
-name: graph-engineer
-description: Plan complex repository work as a validated GraphSpec draft for human review through a local Graph Engineer daemon.
+name: opengraph
+description: Plan complex repository work as a validated GraphSpec draft for human review through a local OpenGraph daemon.
 ---
 
-# Graph Engineer
+# OpenGraph
 
-Use the Graph Engineer MCP tools to prepare an auditable execution graph. The host model is the planner; `graphd` is the deterministic validator and runtime.
+Use the OpenGraph MCP tools to prepare an auditable execution graph. The host model is the planner; `graphd` is the deterministic validator and runtime.
 
 1. Call `graph_discover_environment`, then `graph_inspect_repository`.
 2. Ask the user only for constraints that remain materially ambiguous after discovery.

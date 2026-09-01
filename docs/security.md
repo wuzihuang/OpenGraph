@@ -1,6 +1,6 @@
 # Security and threat model
 
-Graph Engineer treats the repository, planner output, agent output, and event payloads as untrusted input.
+OpenGraph treats the repository, planner output, agent output, and event payloads as untrusted input.
 
 - `graphd` listens on `127.0.0.1` and API/WebSocket access requires a random, mode-0600 local session token.
 - Planner MCP tools can discover, inspect, validate, publish drafts, read status, and propose amendments. No planner tool can approve or run a graph.
@@ -14,4 +14,3 @@ Graph Engineer treats the repository, planner output, agent output, and event pa
 - Repository instructions cannot override compiler invariants, permission policy, or system safety rules.
 
 The dashboard shows explicit plans, activity summaries, messages, tools, terminals, diffs, tests, and artifacts. It neither requests nor exposes hidden chain-of-thought.
-

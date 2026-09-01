@@ -1,7 +1,7 @@
 {
-  "name": "graph-engineer",
+  "name": "opengraph",
   "interface": {
-    "displayName": "Graph Engineer"
+    "displayName": "OpenGraph"
   },
   "plugins": [
     {

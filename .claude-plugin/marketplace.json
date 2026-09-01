@@ -1,7 +1,7 @@
 {
-  "name": "graph-engineer",
+  "name": "opengraph",
   "owner": {
-    "name": "Graph Engineer"
+    "name": "OpenGraph"
   },
   "description": "Graph plugins for auditable repository planning and execution.",
   "plugins": [

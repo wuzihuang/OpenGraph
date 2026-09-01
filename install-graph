@@ -6,13 +6,13 @@ target=${1:-all}
 
 install_codex() {
   codex plugin marketplace add "$repo_root"
-  codex plugin add graph@graph-engineer
+  codex plugin add graph@opengraph
   printf '%s\n' 'Graph installed for Codex. Start a new session and use $graph <goal>.'
 }
 
 install_claude() {
   claude plugin marketplace add "$repo_root"
-  claude plugin install graph@graph-engineer --scope user
+  claude plugin install graph@opengraph --scope user
   alias_dir=${HOME}/.claude/skills/graph
   mkdir -p "$alias_dir"
   cp "$repo_root/plugins/graph/skills/graph/SKILL.md" "$alias_dir/SKILL.md"
